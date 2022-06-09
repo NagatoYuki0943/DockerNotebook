@@ -133,6 +133,27 @@ hello sail
 
 > 由此可见，数据卷技术实现的是双向同步。
 
+## **--volume-from** 数据卷容器同步
+
+> `--volume-from` 多个volume同步
+
+````shell
+docker run -it --name docker01 centos
+Ctrl+Q+P
+
+docker run -it --name docker02 --volume-from docker01 centos
+````
+
+> 两个container的数据是同步的,一个更改另一个也更改
+
+> 继续继承
+
+```shell
+docker run -it --name docker03 --volume-from docker01 centos
+```
+
+> **删除docker01不会影响继承的容器,只要有一个容器在使用就不会删除数据**
+
 ## 权限设置
 
 在使用命令方式设置卷时，还可以指定权限，以此保证数据安全(容器删除,文件还在)。
@@ -181,7 +202,7 @@ apache-tomcat-9.0.55.tar.gz  jdk-8u301-linux-x64.rpm  test.java
 
 > 前面我们没有指定权限也可以写入，由此可见，数据卷默认是具有读写权限的。
 
-# docker volume
+# docker volume 查看卷
 
 ```shell
 PS D:\Docker\test> docker volume --help
@@ -200,9 +221,65 @@ Commands:
 Run 'docker volume COMMAND --help' for more information on a command.
 ```
 
+```shell
+PS D:\docker\test> docker volume ls
+DRIVER    VOLUME NAME
+local     210d98b2f65c1bea7495cce4059e27514fdf7c7f90e5b1e599e1a2bdfe732c18	# 匿名挂卷
+local     d3eee2d69e0e128d417d11398cb2ba2f0d075dffa443c71064d342b50d5f669c
+local     home	# 具名挂载
+local     test
+```
+
+> 查看volume文件位置，都在`/var/lib/docker/volumes/`目录下面，windows的在哪?(ó﹏ò｡)
+>
+> 就是不指定具体的位置，都会在这个位置，文件夹名字就是设定的名字（不设定就是随机的）
+
+```shell
+PS D:\docker\test> docker volume inspect home
+[
+    {
+        "CreatedAt": "2022-06-08T13:01:10Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/home/_data",
+        "Name": "home",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+PS D:\docker\test> docker volume inspect test
+[
+    {
+        "CreatedAt": "2022-06-08T12:58:48Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/test/_data",
+        "Name": "test",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+PS D:\docker\test> docker volume inspect 210d98b2f65c1bea7495cce4059e27514fdf7c7f90e5b1e599e1a2bdfe732c18
+[
+    {
+        "CreatedAt": "2022-06-08T10:39:08Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/210d98b2f65c1bea7495cce4059e27514fdf7c7f90e5b1e599e1a2bdfe732c18/_data",
+        "Name": "210d98b2f65c1bea7495cce4059e27514fdf7c7f90e5b1e599e1a2bdfe732c18",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+```
+
 # 具名挂载
 
 > 启动镜像时只定义主机卷名称，不指定挂载目录。
+
+`ocker run -it -v 名字:容器内路径 ...`
 
 `my-centos:/home` **前面没有绝对路径就是名字**
 
@@ -245,7 +322,9 @@ local     my-centos
 
 # 匿名挂载
 
-> 启动镜像时只指定容器内目录。
+> `ocker run -it -v 容器内路径 ...`
+>
+> `/home`**启动镜像时只指定容器内目录。**
 
 ```shell
 [root@sail mysql]# docker run -it -v /home centos /bin/bash
@@ -282,9 +361,9 @@ local     159830cf55550c9a39e845c1d96aa04cc762005bc0c64d15d5066834b47df940
 
 > 由于没有指定卷名，所以这种方式称为匿名挂载。
 
-只有指定主机目录的情况下会挂载到指定目录，否则都会挂载到默认目录。
+**只有指定主机目录的情况下会挂载到指定目录，否则都会挂载到默认目录。**
 
-拓展
+## ro rw 权限
 
 ```shell
 # 通过 -v 容器内路径:ro rw 改变读写权限
@@ -295,8 +374,6 @@ local     159830cf55550c9a39e845c1d96aa04cc762005bc0c64d15d5066834b47df940
 docker run -d -p 7777:80 --name nginx2 -v juming-nginx:/etc/nginx:ro nginx	
 docker run -d -p 7777:80 --name nginx2 -v juming-nginx:/etc/nginx:rw nginx
 ```
-
-
 
 # 实战
 

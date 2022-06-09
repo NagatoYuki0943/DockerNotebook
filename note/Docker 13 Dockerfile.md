@@ -24,6 +24,13 @@ Dockerfile 是面向开发的，想要打包项目，就要编写 Dockerfile 文
 
 # 官方 Dockerfile
 
+构建步骤
+
+1. 编写Dockerfile文件
+2. docker build 构建镜像
+3. docker run 运行镜像
+4. docker push 发布镜像
+
 > 首先看一下官方的 Dockerfile。
 
 这里以 centos 的镜像为例。
@@ -78,7 +85,7 @@ Docker Hub 中 99% 的镜像都是从`FROM scratch` 开始的。
 - 每个指令都必须是大写字母。
 - 按照从上到下顺序执行。
 - **#** 表示注释。
-- 每一条指令都会创建一个新的镜像层。
+- 每一条指令都会创建一个新的镜像层（都是一层）。
 
 > 解释
 
@@ -90,15 +97,40 @@ Docker Hub 中 99% 的镜像都是从`FROM scratch` 开始的。
 - `VOLUME`：挂载的目录。
 - `EXPOSE`：指定暴露端口，跟 -p 一个道理。
 - `RUN`：最终要运行的。
-- `CMD`：指定这个容器启动的时候要运行的命令，只有最后一个会生效，而且可被替代。
-- `ENTRYPOINT`：指定这个容器启动的时候要运行的命令，可以追加命令。
+- `CMD`：指定这个容器启动的时候要运行的命令，**只有最后一个会生效，而且可被替代**。
+- `ENTRYPOINT`：指定这个容器启动的时候要运行的命令，**可以追加命令**。
 - `ONBUILD`：当构建一个被继承Dockerfile 这个时候运行ONBUILD指定，触发指令。
 - `COPY`：将文件拷贝到镜像中。
 - `ENV`：构建的时候设置环境变量。
 
+> [archlinux](https://gitlab.archlinux.org/archlinux/archlinux-docker/-/blob/7c4a9dcb0588507fc9c23dbb07162124dad7d5ef/Dockerfile.base)
+
+```dockerfile
+FROM alpine:3.12 AS verify
+RUN apk add --no-cache curl tar zstd
+
+# https://gitlab.archlinux.org/archlinux/archlinux-docker/-/releases/v20220529.0.58327
+RUN ROOTFS="$(curl -sOJL -w "%{filename_effective}" "https://gitlab.archlinux.org/archlinux/archlinux-docker/-/package_files/2550/download")" && \
+    echo "e430fa6daa6c6b864ded94eb245753d898ce6e986e7b4d2c9f8a8d284cbc79ed  base-20220529.0.58327.tar.zst" > /tmp/rootfs.tar.sha256 && \
+    cat /tmp/rootfs.tar.sha256 && \
+    sha256sum -c /tmp/rootfs.tar.sha256 && \
+    mkdir /rootfs && \
+    tar -C /rootfs --extract --file "${ROOTFS}"
+
+FROM scratch AS root
+COPY --from=verify /rootfs/ /
+
+RUN ldconfig
+
+ENV LANG=en_US.UTF-8
+CMD ["/usr/bin/bash"]
+```
+
+
+
 ## 构建镜像
 
-### docker build
+### **docker build**
 
 Dockerfile 编写好后，需要使用 `docker build` 命令运行。
 
@@ -110,9 +142,51 @@ docker build [参数] 路径 | 网络地址 | -
 
 > 参数
 
-- `-f`：指定要使用的Dockerfile路径。
-- `-t`：镜像的名字及标签，通常 **name:tag** 或者 **name** 格式；可以在一次构建中为一个镜像设置多个标签。
+- `-f`：`file` 指定要使用的Dockerfile路径。
+- `-t`：`target` 镜像的名字及标签，通常 **name:tag** 或者 **name** 格式；可以在一次构建中为一个镜像设置多个标签。
 - `-m`：设置内存最大值。
+
+```shell
+PS D:\docker\test> docker build --help
+
+Usage:  docker build [OPTIONS] PATH | URL | -
+
+Build an image from a Dockerfile
+
+Options:
+      --add-host list           Add a custom host-to-IP mapping (host:ip)
+      --build-arg list          Set build-time variables
+      --cache-from strings      Images to consider as cache sources
+      --disable-content-trust   Skip image verification (default true)
+  -f, --file string             Name of the Dockerfile (Default is
+                                'PATH/Dockerfile')
+      --iidfile string          Write the image ID to the file
+      --isolation string        Container isolation technology
+      --label list              Set metadata for an image
+      --network string          Set the networking mode for the RUN
+                                instructions during build (default "default")
+      --no-cache                Do not use cache when building the image
+  -o, --output stringArray      Output destination (format:
+                                type=local,dest=path)
+      --platform string         Set platform if server is multi-platform
+                                capable
+      --progress string         Set type of progress output (auto, plain,
+                                tty). Use plain to show container output
+                                (default "auto")
+      --pull                    Always attempt to pull a newer version of
+                                the image
+  -q, --quiet                   Suppress the build output and print image
+                                ID on success
+      --secret stringArray      Secret file to expose to the build (only
+                                if BuildKit enabled):
+                                id=mysecret,src=/local/secret
+      --ssh stringArray         SSH agent socket or keys to expose to the
+                                build (only if BuildKit enabled) (format:
+                                default|<id>[=<socket>|<key>[,<key>]])
+  -t, --tag list                Name and optionally a tag in the
+                                'name:tag' format
+      --target string           Set the target build stage to build.
+```
 
 > Docker 守护进程执行 Dockerfile 中的指令前，首先会对 Dockerfile 进行语法检查，有语法错误时会返回报错信息。
 
@@ -120,9 +194,111 @@ docker build [参数] 路径 | 网络地址 | -
 Error response from daemon: Unknown instruction: RUNCMD
 ```
 
+#### test
+
+> 编写Dockerfile
+
+```dockerfile
+FROM archlinux
+
+VOLUME ["volume01", "volume02"]
+
+CMD ["/bin/bash"]
+```
+
+> 运行Dockerfile
+
+```shell
+PS D:\docker\test> docker build -f ./Dockerfile -t myarchlinux1 .
+[+] Building 0.1s (5/5) FINISHED
+ => [internal] load build definition from Dockerfile                                                                                                                              0.0s
+ => => transferring dockerfile: 131B                                                                                                                                              0.0s
+ => [internal] load .dockerignore                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                   0.0s
+ => [internal] load metadata for docker.io/library/archlinux:latest                                                                                                               0.0s
+ => CACHED [1/1] FROM docker.io/library/archlinux                                                                                                                                 0.0s
+ => exporting to image                                                                                                                                                            0.0s
+ => => exporting layers                                                                                                                                                           0.0s
+ => => writing image sha256:ecb585d72c033f20ac9347af819faf9ae0cbd8de5c38a0b55915ddf5ff44043f                                                                                      0.0s
+ => => naming to docker.io/my/myarchlinux                                                                                                                                         0.0s
+PS D:\docker\test> docker images
+REPOSITORY       TAG       IMAGE ID       CREATED        SIZE
+myarchlinux      1.0       f2884c0e9c3d   23 hours ago   518MB
+archlinux        latest    0a6134a84991   7 days ago     370MB
+<none>           <none>    f5c86a160d65   7 days ago     370MB
+myarchlinux1     latest    ecb585d72c03   7 days ago     370MB
+nginx            latest    605c77e624dd   5 months ago   141MB
+
+D:\docker\test>docker run -it --name arch2 myarchlinux1
+[root@8003e8787ee8 /]# ls -alhF
+total 60K
+drwxr-xr-x   1 root root 4.0K Jun  9 11:31 ./
+drwxr-xr-x   1 root root 4.0K Jun  9 11:31 ../
+lrwxrwxrwx   1 root root    7 Dec  7  2021 bin -> usr/bin/
+drwxr-xr-x   2 root root 4.0K Dec  7  2021 boot/
+drwxr-xr-x   5 root root  360 Jun  9 11:34 dev/
+-rwxr-xr-x   1 root root    0 Jun  9 11:31 .dockerenv*
+drwxr-xr-x   1 root root 4.0K Jun  9 11:31 etc/
+drwxr-xr-x   2 root root 4.0K Dec  7  2021 home/
+lrwxrwxrwx   1 root root    7 Dec  7  2021 lib -> usr/lib/
+lrwxrwxrwx   1 root root    7 Dec  7  2021 lib64 -> usr/lib/
+drwxr-xr-x   2 root root 4.0K Dec  7  2021 mnt/
+drwxr-xr-x   2 root root 4.0K Dec  7  2021 opt/
+dr-xr-xr-x 251 root root    0 Jun  9 11:34 proc/
+drwxr-x---   1 root root 4.0K Jun  9 11:31 root/
+drwxr-xr-x   2 root root 4.0K Dec  7  2021 run/
+lrwxrwxrwx   1 root root    7 Dec  7  2021 sbin -> usr/bin/
+drwxr-xr-x   4 root root 4.0K May 29 00:04 srv/
+dr-xr-xr-x  11 root root    0 Jun  9 11:34 sys/
+drwxrwxrwt   2 root root 4.0K Dec  7  2021 tmp/
+drwxr-xr-x   8 root root 4.0K May 29 00:04 usr/
+drwxr-xr-x   1 root root 4.0K May 29 00:04 var/
+drwxr-xr-x   2 root root 4.0K Jun  9 11:31 volume01/
+drwxr-xr-x   2 root root 4.0K Jun  9 11:31 volume02/	# volume01  volume02就是Dockerfile挂载的，是匿名挂载，下面的就是
+[root@8003e8787ee8 /]# exit
+exit
+
+D:\docker\test>docker inspect arch2
+		...
+        "Mounts": [
+            {
+                "Type": "volume",
+                "Name": "b648386b35ebba2aaa0a6d56df05ab7a52b329d9829cceaad3af4a16fc2fd8ba",
+                "Source": "/var/lib/docker/volumes/b648386b35ebba2aaa0a6d56df05ab7a52b329d9829cceaad3af4a16fc2fd8ba/_data",
+                "Destination": "volume01",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "volume",
+                "Name": "2b8ba03468e1557249b5735e2c2cac7bd6b3f5618f4bb50ee1617c3cb429d1ca",
+                "Source": "/var/lib/docker/volumes/2b8ba03468e1557249b5735e2c2cac7bd6b3f5618f4bb50ee1617c3cb429d1ca/_data",
+                "Destination": "volume02",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            }
+        ],
+		...
+
+D:\docker\test>docker volume ls
+DRIVER    VOLUME NAME
+local     2b8ba03468e1557249b5735e2c2cac7bd6b3f5618f4bb50ee1617c3cb429d1ca
+local     210d98b2f65c1bea7495cce4059e27514fdf7c7f90e5b1e599e1a2bdfe732c18
+local     00375691012fb92ebebcf0c43815aca97630d83702a51abe9a0b5a9f68d60010
+local     b648386b35ebba2aaa0a6d56df05ab7a52b329d9829cceaad3af4a16fc2fd8ba
+local     d3eee2d69e0e128d417d11398cb2ba2f0d075dffa443c71064d342b50d5f669c
+local     e1e83ba3d76358abcd4905d44614a33a098aafb60a177a364fe0c5cadaf61827
+local     home
+local     test
+```
+
 ## 查看构建记录
 
-### docker history
+### **docker history imagename**
 
 > 语法
 
@@ -130,74 +306,80 @@ Error response from daemon: Unknown instruction: RUNCMD
 docker history 镜像
 ```
 
+```shell
+D:\docker\test>docker history archlinux-test
+IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
+36cc160a2371   12 minutes ago   CMD ["/bin/bash"]                               0B        buildkit.dockerfile.v0
+<missing>      12 minutes ago   EXPOSE map[81/tcp:{}]                           0B        buildkit.dockerfile.v0
+<missing>      12 minutes ago   RUN /bin/sh -c pacman -Sy # buildkit            8.91MB    buildkit.dockerfile.v0
+<missing>      12 minutes ago   WORKDIR /usr/local                              0B        buildkit.dockerfile.v0
+<missing>      12 minutes ago   ENV MYPATH=/usr/local                           0B        buildkit.dockerfile.v0
+<missing>      12 minutes ago   LABEL author=yuki<2487575080@qq.com> build-d…   0B        buildkit.dockerfile.v0
+<missing>      7 days ago       /bin/sh -c #(nop)  CMD ["/usr/bin/bash"]        0B
+<missing>      7 days ago       /bin/sh -c #(nop)  ENV LANG=en_US.UTF-8         0B
+<missing>      7 days ago       /bin/sh -c ldconfig                             30.6kB
+<missing>      7 days ago       /bin/sh -c #(nop) COPY dir:ac665895ff5b6a4b4…   370MB
+```
+
 ## CMD 与 ENTRYPOINT 区别
+
+- `CMD`：指定这个容器启动的时候要运行的命令，**只有最后一个会生效，而且可被替代**。
+- `ENTRYPOINT`：指定这个容器启动的时候要运行的命令，**可以追加命令**。
 
 ### CMD 命令演示
 
 > 编写 Dockerfile
 
-```shell
-[root@sail dockerfile]# vim Dockerfile-cmd-test
-[root@sail dockerfile]# cat Dockerfile-cmd-test 
-FROM centos
-CMD ["ls","-a"]
+```docker
+FROM archlinux
+
+CMD ["ls", "-a"]
 ```
 
 > 构建镜像
 
 ```shell
-[root@sail dockerfile]# docker build -f Dockerfile-cmd-test -t cmdtest .
-Sending build context to Docker daemon  2.048kB
-Step 1/2 : FROM centos
- ---> 5d0da3dc9764
-Step 2/2 : CMD ["ls","-a"]
- ---> Running in 0a743e929fff
-Removing intermediate container 0a743e929fff
- ---> 1683c0790d49
-Successfully built 1683c0790d49
-Successfully tagged cmdtest:latest
+D:\docker\test>docker build -f Dockerfile1 -t cmdtest .
+[+] Building 0.1s (5/5) FINISHED
+ => [internal] load build definition from Dockerfile1                                                                                                                         0.0s
+ => => transferring dockerfile: 72B                                                                                                                                           0.0s
+ => [internal] load .dockerignore                                                                                                                                             0.0s
+ => => transferring context: 2B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/archlinux:latest                                                                                                           0.0s
+ => CACHED [1/1] FROM docker.io/library/archlinux                                                                                                                             0.0s
+ => exporting to image                                                                                                                                                        0.0s
+ => => exporting layers                                                                                                                                                       0.0s
+ => => writing image sha256:e96eaae15aa1500cb7e0af5b7c2650ee1e4691c4fc7a00e2e2296cc6e9c4c20f                                                                                  0.0s
+ => => naming to docker.io/library/cmdtest
+```
 
-[root@sail dockerfile]# docker images
-REPOSITORY        TAG       IMAGE ID       CREATED          SIZE
-cmdtest           latest    1683c0790d49   13 minutes ago   231MB
+```shell
+D:\docker\test>docker images
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+archlinux    latest    0a6134a84991   7 days ago     370MB
+cmdtest      latest    e96eaae15aa1   7 days ago     370MB
+nginx        latest    605c77e624dd   5 months ago   141MB
 ```
 
 > 运行镜像
 
 ```shell
-[root@sail dockerfile]# docker run cmdtest
-.
-..
-.dockerenv
-bin
-dev
-etc
-home
-lib
-lib64
-lost+found
-media
-mnt
-opt
-proc
-root
-run
-sbin
-srv
-sys
-tmp
-usr
-var
+D:\docker\test>docker run -it --name cmdtest1 cmdtest
+.   bin   dev         etc   lib    mnt  proc  run   srv  tmp  var
+..  boot  .dockerenv  home  lib64  opt  root  sbin  sys  usr
+
 ```
 
 此时 Dockerfile 中编写的命令生效了。
 
 > 追加 `-l` 命令
+>
+> 报错
 
 ```shell
-[root@sail dockerfile]# docker run cmdtest -l
-docker: Error response from daemon: OCI runtime create failed: container_linux.go:380: starting container process caused: exec: "-l": executable file not found in $PATH: unknown.
-ERRO[0000] error waiting for container: context canceled
+D:\docker\test>docker run -it --name cmdtest1 cmdtest -l
+docker: Error response from daemon: Conflict. The container name "/cmdtest1" is already in use by container "18f643b4d1389b3f323d0ba76d49232ec149f6f19448c66c20a32da767541240". You have to remove (or rename) that container to be able to reuse that name.
+See 'docker run --help'.
 ```
 
 没有达到预期的 `ls -al` 命令。
@@ -208,47 +390,50 @@ ERRO[0000] error waiting for container: context canceled
 
 > 编写 Dockerfile
 
-```shell
-[root@sail dockerfile]# vim Dockerfile-entrypoint-test
-[root@sail dockerfile]# cat Dockerfile-entrypoint-test 
-FROM centos
-ENTRYPOINT ["ls","-a"]
+```dockerfile
+FROM archlinux
+
+ENTRYPOINT ["ls", "-a"]
 ```
 
 > 构建镜像
 
 ```shell
-[root@sail dockerfile]# docker build -f Dockerfile-entrypoint-test -t entrypoint-test .
-Sending build context to Docker daemon  3.072kB
-Step 1/2 : FROM centos
- ---> 5d0da3dc9764
-Step 2/2 : ENTRYPOINT ["ls","-a"]
- ---> Running in a02d55ae0a00
-Removing intermediate container a02d55ae0a00
- ---> 795973a0ed43
-Successfully built 795973a0ed43
-Successfully tagged entrypoint-test:latest
+D:\docker\test>docker build -f Dockerfile1 -t entrypointtest .
+[+] Building 0.1s (5/5) FINISHED
+ => [internal] load build definition from Dockerfile1                                                                                                                         0.0s
+ => => transferring dockerfile: 79B                                                                                                                                           0.0s
+ => [internal] load .dockerignore                                                                                                                                             0.0s
+ => => transferring context: 2B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/archlinux:latest                                                                                                           0.0s
+ => CACHED [1/1] FROM docker.io/library/archlinux                                                                                                                             0.0s
+ => exporting to image                                                                                                                                                        0.0s
+ => => exporting layers                                                                                                                                                       0.0s
+ => => writing image sha256:821da1cd2b686739fc5527740370fe39acf60a0de2ff8c690c598fb418e9d029                                                                                  0.0s
+ => => naming to docker.io/library/entrypointtest                                                                                                                             0.0s
 
-[root@sail dockerfile]# docker images
-REPOSITORY        TAG       IMAGE ID       CREATED          SIZE
-entrypoint-test   latest    795973a0ed43   22 seconds ago   231MB
+D:\docker\test>docker images
+REPOSITORY       TAG       IMAGE ID       CREATED        SIZE
+cmdtest          latest    e96eaae15aa1   7 days ago     370MB
+entrypointtest   latest    821da1cd2b68   7 days ago     370MB
+archlinux        latest    0a6134a84991   7 days ago     370MB
+nginx            latest    605c77e624dd   5 months ago   141MB
 ```
 
 > 运行镜像
 
 ```shell
-[root@sail dockerfile]# docker run entrypoint-test
+D:\docker\test>docker run entrypointtest
 .
 ..
-.dockerenv
 bin
+boot
 dev
+.dockerenv
 etc
 home
 lib
 lib64
-lost+found
-media
 mnt
 opt
 proc
@@ -267,30 +452,29 @@ var
 > 追加 `-l` 命令
 
 ```shell
-[root@sail dockerfile]# docker run entrypoint-test -l
-total 56
-drwxr-xr-x   1 root root 4096 Dec 23 06:46 .
-drwxr-xr-x   1 root root 4096 Dec 23 06:46 ..
--rwxr-xr-x   1 root root    0 Dec 23 06:46 .dockerenv
-lrwxrwxrwx   1 root root    7 Nov  3  2020 bin -> usr/bin
-drwxr-xr-x   5 root root  340 Dec 23 06:46 dev
-drwxr-xr-x   1 root root 4096 Dec 23 06:46 etc
-drwxr-xr-x   2 root root 4096 Nov  3  2020 home
-lrwxrwxrwx   1 root root    7 Nov  3  2020 lib -> usr/lib
-lrwxrwxrwx   1 root root    9 Nov  3  2020 lib64 -> usr/lib64
-drwx------   2 root root 4096 Sep 15 14:17 lost+found
-drwxr-xr-x   2 root root 4096 Nov  3  2020 media
-drwxr-xr-x   2 root root 4096 Nov  3  2020 mnt
-drwxr-xr-x   2 root root 4096 Nov  3  2020 opt
-dr-xr-xr-x 106 root root    0 Dec 23 06:46 proc
-dr-xr-x---   2 root root 4096 Sep 15 14:17 root
-drwxr-xr-x  11 root root 4096 Sep 15 14:17 run
-lrwxrwxrwx   1 root root    8 Nov  3  2020 sbin -> usr/sbin
-drwxr-xr-x   2 root root 4096 Nov  3  2020 srv
-dr-xr-xr-x  13 root root    0 Oct 31 15:00 sys
-drwxrwxrwt   7 root root 4096 Sep 15 14:17 tmp
-drwxr-xr-x  12 root root 4096 Sep 15 14:17 usr
-drwxr-xr-x  20 root root 4096 Sep 15 14:17 var
+D:\docker\test>docker run -it --name entrypointtest1 entrypointtest -l
+total 52
+drwxr-xr-x   1 root root 4096 Jun  9 13:38 .
+drwxr-xr-x   1 root root 4096 Jun  9 13:38 ..
+lrwxrwxrwx   1 root root    7 Dec  7  2021 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Dec  7  2021 boot
+drwxr-xr-x   5 root root  340 Jun  9 13:38 dev
+-rwxr-xr-x   1 root root    0 Jun  9 13:38 .dockerenv
+drwxr-xr-x   1 root root 4096 Jun  9 13:38 etc
+drwxr-xr-x   2 root root 4096 Dec  7  2021 home
+lrwxrwxrwx   1 root root    7 Dec  7  2021 lib -> usr/lib
+lrwxrwxrwx   1 root root    7 Dec  7  2021 lib64 -> usr/lib
+drwxr-xr-x   2 root root 4096 Dec  7  2021 mnt
+drwxr-xr-x   2 root root 4096 Dec  7  2021 opt
+dr-xr-xr-x 252 root root    0 Jun  9 13:38 proc
+drwxr-x---   2 root root 4096 Dec  7  2021 root
+drwxr-xr-x   2 root root 4096 Dec  7  2021 run
+lrwxrwxrwx   1 root root    7 Dec  7  2021 sbin -> usr/bin
+drwxr-xr-x   4 root root 4096 May 29 00:04 srv
+dr-xr-xr-x  11 root root    0 Jun  9 13:38 sys
+drwxrwxrwt   2 root root 4096 Dec  7  2021 tmp
+drwxr-xr-x   8 root root 4096 May 29 00:04 usr
+drwxr-xr-x   1 root root 4096 May 29 00:04 var
 ```
 
 运行了预期的 `ls -al` 命令。
@@ -303,30 +487,42 @@ Docker 中许多命令都十分相似，我们需要了解他们的区别，最�
 
 ## 创建包含vim命令的centos镜像
 
+> https://github.com/CentOS/sig-cloud-instance-images/blob/b2d195220e1c5b181427c3172829c23ab9cd27eb/docker/Dockerfile
+
+```dockerfile
+FROM scratch
+ADD centos-7-x86_64-docker.tar.xz /
+
+LABEL \
+    org.label-schema.schema-version="1.0" \
+    org.label-schema.name="CentOS Base Image" \
+    org.label-schema.vendor="CentOS" \
+    org.label-schema.license="GPLv2" \
+    org.label-schema.build-date="20201113" \
+    org.opencontainers.image.title="CentOS Base Image" \
+    org.opencontainers.image.vendor="CentOS" \
+    org.opencontainers.image.licenses="GPL-2.0-only" \
+    org.opencontainers.image.created="2020-11-13 00:00:00+00:00"
+
+CMD ["/bin/bash"]
+```
+
 > 编写 Dockerfile
 
-```shell
-[root@sail dockerfile]# vim Dockerfile-centos-test
+```dockerfile
+FROM archlinux
 
-[root@sail dockerfile]# cat Dockerfile-centos-test
+LABEL \
+    author="yuki<2487575080@qq.com>" \
+    build-date="2022-06-09 21:05:03"
 
-FROM centos
+ENV MYPATH /usr/local	# 设置环境变量
 
-MAINTAINER sail<yifansailing@163.com>
+WORKDIR $MYPATH			# 设置默认工作目录
 
-ENV MYPATH /usr/local
+RUN pacman -Sy
 
-WORKDIR $MYPATH
-
-RUN yum -y install vim
-
-RUN yum -y install net-tools
-
-EXPOSE 81
-
-CMD echo $MYPATH
-
-CMD echo "---end---"
+EXPOSE 81				# 暴露端口
 
 CMD ["/bin/bash"]
 ```
@@ -334,172 +530,52 @@ CMD ["/bin/bash"]
 > 构建镜像
 
 ```shell
-[root@sail dockerfile]# docker build -f Dockerfile-centos-test -t centos-test .
-Sending build context to Docker daemon  5.632kB
-Step 1/10 : FROM centos
- ---> 5d0da3dc9764
-Step 2/10 : MAINTAINER sail<yifansailing@163.com>
- ---> Running in 8b7340768878
-Removing intermediate container 8b7340768878
- ---> 9616888f3b10
-Step 3/10 : ENV MYPATH /usr/local
- ---> Running in 2c73446a56ff
-Removing intermediate container 2c73446a56ff
- ---> be89377d4c2c
-Step 4/10 : WORKDIR $MYPATH
- ---> Running in db113c4f7cb2
-Removing intermediate container db113c4f7cb2
- ---> fb41ece5d944
-Step 5/10 : RUN yum -y install vim
- ---> Running in eccee60c0389
-CentOS Linux 8 - AppStream                       12 MB/s | 8.4 MB     00:00    
-CentOS Linux 8 - BaseOS                         1.7 MB/s | 3.6 MB     00:02    
-CentOS Linux 8 - Extras                          17 kB/s |  10 kB     00:00    
-Last metadata expiration check: 0:00:01 ago on Sat Dec 25 05:09:40 2021.
-Dependencies resolved.
-================================================================================
- Package             Arch        Version                   Repository      Size
-================================================================================
-Installing:
- vim-enhanced        x86_64      2:8.0.1763-16.el8         appstream      1.4 M
-Installing dependencies:
- gpm-libs            x86_64      1.20.7-17.el8             appstream       39 k
- vim-common          x86_64      2:8.0.1763-16.el8         appstream      6.3 M
- vim-filesystem      noarch      2:8.0.1763-16.el8         appstream       49 k
- which               x86_64      2.21-16.el8               baseos          49 k
-Transaction Summary
-================================================================================
-Install  5 Packages
-Total download size: 7.8 M
-Installed size: 30 M
-Downloading Packages:
-(1/5): gpm-libs-1.20.7-17.el8.x86_64.rpm        582 kB/s |  39 kB     00:00    
-(2/5): vim-filesystem-8.0.1763-16.el8.noarch.rp 1.2 MB/s |  49 kB     00:00    
-(3/5): vim-common-8.0.1763-16.el8.x86_64.rpm     40 MB/s | 6.3 MB     00:00    
-(4/5): vim-enhanced-8.0.1763-16.el8.x86_64.rpm  7.1 MB/s | 1.4 MB     00:00    
-(5/5): which-2.21-16.el8.x86_64.rpm             252 kB/s |  49 kB     00:00    
---------------------------------------------------------------------------------
-Total                                           6.4 MB/s | 7.8 MB     00:01     
-warning: /var/cache/dnf/appstream-02e86d1c976ab532/packages/gpm-libs-1.20.7-17.el8.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID 8483c65d: NOKEY
-CentOS Linux 8 - AppStream                      1.6 MB/s | 1.6 kB     00:00    
-Importing GPG key 0x8483C65D:
- Userid     : "CentOS (CentOS Official Signing Key) <security@centos.org>"
- Fingerprint: 99DB 70FA E1D7 CE22 7FB6 4882 05B5 55B3 8483 C65D
- From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-Key imported successfully
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                        1/1 
-  Installing       : which-2.21-16.el8.x86_64                               1/5 
-  Installing       : vim-filesystem-2:8.0.1763-16.el8.noarch                2/5 
-  Installing       : vim-common-2:8.0.1763-16.el8.x86_64                    3/5 
-  Installing       : gpm-libs-1.20.7-17.el8.x86_64                          4/5 
-  Running scriptlet: gpm-libs-1.20.7-17.el8.x86_64                          4/5 
-  Installing       : vim-enhanced-2:8.0.1763-16.el8.x86_64                  5/5 
-  Running scriptlet: vim-enhanced-2:8.0.1763-16.el8.x86_64                  5/5 
-  Running scriptlet: vim-common-2:8.0.1763-16.el8.x86_64                    5/5 
-  Verifying        : gpm-libs-1.20.7-17.el8.x86_64                          1/5 
-  Verifying        : vim-common-2:8.0.1763-16.el8.x86_64                    2/5 
-  Verifying        : vim-enhanced-2:8.0.1763-16.el8.x86_64                  3/5 
-  Verifying        : vim-filesystem-2:8.0.1763-16.el8.noarch                4/5 
-  Verifying        : which-2.21-16.el8.x86_64                               5/5 
-Installed:
-  gpm-libs-1.20.7-17.el8.x86_64         vim-common-2:8.0.1763-16.el8.x86_64    
-  vim-enhanced-2:8.0.1763-16.el8.x86_64 vim-filesystem-2:8.0.1763-16.el8.noarch
-  which-2.21-16.el8.x86_64             
-Complete!
-Removing intermediate container eccee60c0389
- ---> 9f54f48660ac
-Step 6/10 : RUN yum -y install net-tools
- ---> Running in 6caa7361b001
-Last metadata expiration check: 0:00:08 ago on Sat Dec 25 05:09:40 2021.
-Dependencies resolved.
-================================================================================
- Package         Architecture Version                        Repository    Size
-================================================================================
-Installing:
- net-tools       x86_64       2.0-0.52.20160912git.el8       baseos       322 k
-Transaction Summary
-================================================================================
-Install  1 Package
-Total download size: 322 k
-Installed size: 942 k
-Downloading Packages:
-net-tools-2.0-0.52.20160912git.el8.x86_64.rpm   1.0 MB/s | 322 kB     00:00    
---------------------------------------------------------------------------------
-Total                                           449 kB/s | 322 kB     00:00     
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                        1/1 
-  Installing       : net-tools-2.0-0.52.20160912git.el8.x86_64              1/1 
-  Running scriptlet: net-tools-2.0-0.52.20160912git.el8.x86_64              1/1 
-  Verifying        : net-tools-2.0-0.52.20160912git.el8.x86_64              1/1 
-Installed:
-  net-tools-2.0-0.52.20160912git.el8.x86_64                                     
-Complete!
-Removing intermediate container 6caa7361b001
- ---> a9431f90fd3f
-Step 7/10 : EXPOSE 81
- ---> Running in ad67fa23940a
-Removing intermediate container ad67fa23940a
- ---> b5bd21416741
-Step 8/10 : CMD echo $MYPATH
- ---> Running in fb1d08538689
-Removing intermediate container fb1d08538689
- ---> 5c5def0bbb85
-Step 9/10 : CMD echo "---end---"
- ---> Running in a9d955b6b389
-Removing intermediate container a9d955b6b389
- ---> ad95558eb658
-Step 10/10 : CMD ["/bin/bash"]
- ---> Running in 190651202e7b
-Removing intermediate container 190651202e7b
- ---> d58be7785771
-Successfully built d58be7785771
-Successfully tagged centos-test:latest
+D:\docker\test>docker build -f Dockerfile -t archlinux-test:latest .
+[+] Building 0.1s (7/7) FINISHED
+ => [internal] load build definition from Dockerfile                                                                                                                              0.0s
+ => => transferring dockerfile: 238B                                                                                                                                              0.0s
+ => [internal] load .dockerignore                                                                                                                                                 0.0s
+ => => transferring context: 2B                                                                                                                                                   0.0s
+ => [internal] load metadata for docker.io/library/archlinux:latest                                                                                                               0.0s
+ => [1/3] FROM docker.io/library/archlinux                                                                                                                                        0.0s
+ => CACHED [2/3] WORKDIR /usr/local                                                                                                                                               0.0s
+ => CACHED [3/3] RUN pacman -Sy                                                                                                                                                   0.0s
+ => exporting to image                                                                                                                                                            0.0s
+ => => exporting layers                                                                                                                                                           0.0s
+ => => writing image sha256:36cc160a2371296c798c4c9a9533f1e3e810c080ffed1f02edd7ae0303369bc2                                                                                      0.0s
+ => => naming to docker.io/library/archlinux-test:latest
 ```
 
 > 查看构建的镜像
 
 ```shell
-[root@sail dockerfile]# docker images
-REPOSITORY        TAG       IMAGE ID       CREATED              SIZE
-centos-test       latest    d58be7785771   About a minute ago   323MB
+D:\docker\test>docker images
+REPOSITORY       TAG       IMAGE ID       CREATED         SIZE
+archlinux-test   latest    36cc160a2371   4 minutes ago   379MB
+archlinux        latest    0a6134a84991   7 days ago      370MB
+nginx            latest    605c77e624dd   5 months ago    141MB
 ```
 
 > 查看本地镜像的构建记录
 
 ```shell
-[root@sail dockerfile]# docker history centos-test
-IMAGE          CREATED         CREATED BY                                      SIZE      COMMENT
-d58be7785771   5 minutes ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
-ad95558eb658   5 minutes ago   /bin/sh -c #(nop)  CMD ["/bin/sh" "-c" "echo…   0B        
-5c5def0bbb85   5 minutes ago   /bin/sh -c #(nop)  CMD ["/bin/sh" "-c" "echo…   0B        
-b5bd21416741   5 minutes ago   /bin/sh -c #(nop)  EXPOSE 81                    0B        
-a9431f90fd3f   5 minutes ago   /bin/sh -c yum -y install net-tools             27.3MB    
-9f54f48660ac   5 minutes ago   /bin/sh -c yum -y install vim                   64.8MB    
-fb41ece5d944   5 minutes ago   /bin/sh -c #(nop) WORKDIR /usr/local            0B        
-be89377d4c2c   5 minutes ago   /bin/sh -c #(nop)  ENV MYPATH=/usr/local        0B        
-9616888f3b10   5 minutes ago   /bin/sh -c #(nop)  MAINTAINER sail<yifansail…   0B        
-5d0da3dc9764   3 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
-<missing>      3 months ago    /bin/sh -c #(nop)  LABEL org.label-schema.sc…   0B        
-<missing>      3 months ago    /bin/sh -c #(nop) ADD file:805cb5e15fb6e0bb0…   231MB
+D:\docker\test>docker images -a
+REPOSITORY       TAG       IMAGE ID       CREATED         SIZE
+archlinux-test   latest    36cc160a2371   4 minutes ago   379MB
+archlinux        latest    0a6134a84991   7 days ago      370MB
+nginx            latest    605c77e624dd   5 months ago    141MB
 ```
 
 > 运行测试
 
 ```shell
-[root@sail ~]# docker run -it centos-test
-[root@530551bc2162 local]# pwd
+D:\docker\test>docker run -it --name arch2 archlinux-test
+[root@73b3c84e7e1c local]# ls
+bin  etc  games  include  lib  man  sbin  share  src
+[root@73b3c84e7e1c local]# pwd	# 默认目录
 /usr/local
-[root@530551bc2162 local]# vim test.java
-[root@530551bc2162 local]#
+[root@73b3c84e7e1c local]# exit
+exit
 ```
 
 默认的工作目录正是 Dockerfile 中设置的 `/usr/local` ，且可以使用 `vim` 命令了。

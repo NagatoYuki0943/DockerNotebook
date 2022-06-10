@@ -390,39 +390,98 @@ https://hub.docker.com/_/mysql
 ```shell
 docker run
 -d 
--p 3310:3306 
--v /home/mysql/conf:/etc/mysql/conf.d 	# 可以映射多个目录
+-p 3307:3306 
+-v /home/mysql/conf.d:/etc/mysql/conf.d # 可以映射多个目录
 -v /home/mysql/data:/var/lib/mysql		# 可以映射多个目录
 -e MYSQL_ROOT_PASSWORD=root 			# -e 配置环境 密码
 --name mysql1 
+mysql
+
+docker run -d -p 3307:3306 `
+-v /home/mysql/conf.d:/etc/mysql/conf.d `
+-v /home/mysql/data:/var/lib/mysql `
+-e MYSQL_ROOT_PASSWORD=root `
+--name mysql1 `
 mysql
 ```
 
 
 
 ```shell
-[root@sail ~]# docker run -d -p 3310:3306 -v /home/mysql/conf:/etc/mysql/conf.d -v /home/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root --name mysql1 mysql
-Unable to find image 'mysql:latest' locally
+PS D:\Docker\test> docker pull mysql
+Using default tag: latest
 latest: Pulling from library/mysql
-ffbb094f4f9e: Pull complete 
-df186527fc46: Pull complete 
-fa362a6aa7bd: Pull complete 
-5af7cb1a200e: Pull complete 
-949da226cc6d: Pull complete 
-bce007079ee9: Pull complete 
-eab9f076e5a3: Pull complete 
-c7b24c3f27af: Pull complete 
-6fc26ff6705a: Pull complete 
-bec5cdb5e7f7: Pull complete 
-6c1cb25f7525: Pull complete 
-Digest: sha256:d1cc87a3bd5dc07defc837bc9084f748a130606ff41923f46dec1986e0dc828d
+72a69066d2fe: Pull complete
+93619dbc5b36: Pull complete
+99da31dd6142: Pull complete
+626033c43d70: Pull complete
+37d5d7efb64e: Pull complete
+ac563158d721: Pull complete
+d2ba16033dad: Pull complete
+688ba7d5c01a: Pull complete
+00e060b6d11d: Pull complete
+1c04857f594f: Pull complete
+4d7cfa90e6ea: Pull complete
+e0431212d27d: Pull complete
+Digest: sha256:e9027fe4d91c0153429607251656806cc784e914937271037f7738bd5b8e7709
 Status: Downloaded newer image for mysql:latest
-a016e564d977550e475474556cfd033fb1c731002381bc9f9544c63fccb7f60c
+
+PS D:\Docker\test> docker run -d -p 3307:3306 `
+>> -v /home/mysql/conf.d:/etc/mysql/conf.d `
+>> -v /home/mysql/data:/var/lib/mysql `
+>> -e MYSQL_ROOT_PASSWORD=root `
+>> --name mysql1 `
+>> mysql
+29bd9896ae7e59dfaf01a61ca0823c5a5a2b7c769b199e951453c1638489c7ed
+PS D:\Docker\test> docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                               NAMES
+29bd9896ae7e   mysql     "docker-entrypoint.s…"   5 seconds ago   Up 4 seconds   33060/tcp, 0.0.0.0:3307->3306/tcp   mysql1
 ```
 
 其中 `-e` 为环境配置。安装启动 mysql 需要配置密码。
 
 > 使用`docker inspect`查看挂载情况。
+
+```shell
+PS D:\Docker\test> docker inspect mysql1
+		...
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/home/mysql/conf.d",			# 挂载
+                "Destination": "/etc/mysql/conf.d",
+                "Mode": "",
+                "RW": true,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Source": "/home/mysql/data",			# g
+                "Destination": "/var/lib/mysql",
+                "Mode": "",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "d71b88f87058d4d11111be30f34a155d63330b5c4221611bbc9c874c5777f487",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {
+                "3306/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "3307"
+                    }
+                ],
+                "33060/tcp": null
+            },
+        }
+    }
+]
+```
 
 ![img](Docker 12 数据卷.assets/kuangstudy37de2e6a-c038-41b1-90ec-c8e4c36a46f5.png)
 

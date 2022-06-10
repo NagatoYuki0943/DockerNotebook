@@ -92,7 +92,7 @@ Docker Hub 中 99% 的镜像都是从`FROM scratch` 开始的。
 - `FROM`：基础镜像，比如 centos。
 - `MAINTAINER`：镜像是谁写的。建议以此格式：`姓名<邮箱>`。
 - `RUN`：镜像构建时需要运行的命令。
-- `ADD`：添加，比如添加一个 tomcat 压缩包。
+- `ADD`：添加，比如添加一个 tomcat 压缩包。**会自动解压文件**
 - `WORKDIR`：镜像的工作目录。
 - `VOLUME`：挂载的目录。
 - `EXPOSE`：指定暴露端口，跟 -p 一个道理。
@@ -585,9 +585,11 @@ exit
 > 编写 Dockerfile
 
 ```shell
-FROM centos
+FROM ubuntu
 
-MAINTAINER sail<yifansailing@163.com>
+LABEL \
+    author="yuki<2487575080@qq.com>" \
+    build-date="2022-06-10 21:05:03"
 
 COPY readme.txt /usr/local/readme.txt
 
@@ -595,20 +597,25 @@ ENV MYPATH /usr/local/
 
 WORKDIR $MYPATH
 
+# 添加文件 ADD会自动解压文件
 ADD jdk-8u301-linux-x64.tar.gz $MYPATH
 
 ADD apache-tomcat-9.0.55.tar.gz $MYPATH
 
-RUN yum -y install vim
+# RUN apt update
 
-ENV JAVA_HOME $MYPATH/jdk1.8.0_301-amd64
+# RUN apt install vim
 
-ENV CLASSPATH $JAVA_HOME/lib/
+# 添加环境变量
+ENV JAVA_HOME $MYPATH/jdk1.8.0_301
+
+ENV CLASSPATH $JAVA_HOME/lib
 
 ENV CATALINA_HOME $MYPATH/apache-tomcat-9.0.55
 
 ENV CATALINA_BASH $MYPATH/apache-tomcat-9.0.55
 
+# :拼接环境变量
 ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/bin:$CATALINA_HOME/lib
 
 EXPOSE 8080
@@ -621,135 +628,43 @@ CMD $CATALINA_HOME/bin/startup.sh && tail -F $CATALINA_HOME/logs/catalina.out
 > 构建镜像
 
 ```shell
-[root@sail tomcat]# docker build -t tomcat-test .
-Sending build context to Docker daemon  157.1MB
-Step 1/15 : FROM centos
- ---> 5d0da3dc9764
-Step 2/15 : MAINTAINER sail<yifansailing@163.com>
- ---> Using cache
- ---> 9616888f3b10
-Step 3/15 : COPY readme.txt /usr/local/readme.txt
- ---> da792df641f8
-Step 4/15 : ENV MYPATH /usr/local/
- ---> Running in e4a5b13decd7
-Removing intermediate container e4a5b13decd7
- ---> 7b1e6970b4b3
-Step 5/15 : WORKDIR $MYPATH
- ---> Running in 835dabd080dd
-Removing intermediate container 835dabd080dd
- ---> 7be17b1556ee
-Step 6/15 : ADD jdk-8u301-linux-x64.tar.gz $MYPATH
- ---> 480721043fda
-Step 7/15 : ADD apache-tomcat-9.0.55.tar.gz $MYPATH
- ---> c7bfa13bfcd1
-Step 8/15 : RUN yum -y install vim
- ---> Running in 85532523d784
-CentOS Linux 8 - AppStream                      9.0 MB/s | 8.4 MB     00:00    
-CentOS Linux 8 - BaseOS                         5.6 MB/s | 3.6 MB     00:00    
-CentOS Linux 8 - Extras                          20 kB/s |  10 kB     00:00    
-Dependencies resolved.
-================================================================================
- Package             Arch        Version                   Repository      Size
-================================================================================
-Installing:
- vim-enhanced        x86_64      2:8.0.1763-16.el8         appstream      1.4 M
-Installing dependencies:
- gpm-libs            x86_64      1.20.7-17.el8             appstream       39 k
- vim-common          x86_64      2:8.0.1763-16.el8         appstream      6.3 M
- vim-filesystem      noarch      2:8.0.1763-16.el8         appstream       49 k
- which               x86_64      2.21-16.el8               baseos          49 k
-Transaction Summary
-================================================================================
-Install  5 Packages
-Total download size: 7.8 M
-Installed size: 30 M
-Downloading Packages:
-(1/5): gpm-libs-1.20.7-17.el8.x86_64.rpm        973 kB/s |  39 kB     00:00    
-(2/5): vim-filesystem-8.0.1763-16.el8.noarch.rp 726 kB/s |  49 kB     00:00    
-(3/5): vim-enhanced-8.0.1763-16.el8.x86_64.rpm   10 MB/s | 1.4 MB     00:00    
-(4/5): which-2.21-16.el8.x86_64.rpm             901 kB/s |  49 kB     00:00    
-(5/5): vim-common-8.0.1763-16.el8.x86_64.rpm     27 MB/s | 6.3 MB     00:00    
---------------------------------------------------------------------------------
-Total                                           6.6 MB/s | 7.8 MB     00:01     
-warning: /var/cache/dnf/appstream-02e86d1c976ab532/packages/gpm-libs-1.20.7-17.el8.x86_64.rpm: Header V3 RSA/SHA256 Signature, key ID 8483c65d: NOKEY
-CentOS Linux 8 - AppStream                      1.6 MB/s | 1.6 kB     00:00    
-Importing GPG key 0x8483C65D:
- Userid     : "CentOS (CentOS Official Signing Key) <security@centos.org>"
- Fingerprint: 99DB 70FA E1D7 CE22 7FB6 4882 05B5 55B3 8483 C65D
- From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-Key imported successfully
-Running transaction check
-Transaction check succeeded.
-Running transaction test
-Transaction test succeeded.
-Running transaction
-  Preparing        :                                                        1/1 
-  Installing       : which-2.21-16.el8.x86_64                               1/5 
-  Installing       : vim-filesystem-2:8.0.1763-16.el8.noarch                2/5 
-  Installing       : vim-common-2:8.0.1763-16.el8.x86_64                    3/5 
-  Installing       : gpm-libs-1.20.7-17.el8.x86_64                          4/5 
-  Running scriptlet: gpm-libs-1.20.7-17.el8.x86_64                          4/5 
-  Installing       : vim-enhanced-2:8.0.1763-16.el8.x86_64                  5/5 
-  Running scriptlet: vim-enhanced-2:8.0.1763-16.el8.x86_64                  5/5 
-  Running scriptlet: vim-common-2:8.0.1763-16.el8.x86_64                    5/5 
-  Verifying        : gpm-libs-1.20.7-17.el8.x86_64                          1/5 
-  Verifying        : vim-common-2:8.0.1763-16.el8.x86_64                    2/5 
-  Verifying        : vim-enhanced-2:8.0.1763-16.el8.x86_64                  3/5 
-  Verifying        : vim-filesystem-2:8.0.1763-16.el8.noarch                4/5 
-  Verifying        : which-2.21-16.el8.x86_64                               5/5 
-Installed:
-  gpm-libs-1.20.7-17.el8.x86_64         vim-common-2:8.0.1763-16.el8.x86_64    
-  vim-enhanced-2:8.0.1763-16.el8.x86_64 vim-filesystem-2:8.0.1763-16.el8.noarch
-  which-2.21-16.el8.x86_64             
-Complete!
-Removing intermediate container 85532523d784
- ---> e091ece0364d
-Step 9/15 : ENV JAVA_HOME $MYPATH/jdk1.8.0_301-amd64
- ---> Running in 473066cf57f4
-Removing intermediate container 473066cf57f4
- ---> 0a8963a2c1ab
-Step 10/15 : ENV CLASSPATH $JAVA_HOME/lib/
- ---> Running in 78a2cb9b06cd
-Removing intermediate container 78a2cb9b06cd
- ---> 3dd34a2857b4
-Step 11/15 : ENV CATALINA_HOME $MYPATH/apache-tomcat-9.0.55
- ---> Running in 4ca540479e3d
-Removing intermediate container 4ca540479e3d
- ---> fa38f4581510
-Step 12/15 : ENV CATALINA_BASH $MYPATH/apache-tomcat-9.0.55
- ---> Running in 31dc5b38478c
-Removing intermediate container 31dc5b38478c
- ---> 8ae919106bf6
-Step 13/15 : ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/bin:$CATALINA_HOME/lib
- ---> Running in d3fe1f81fab7
-Removing intermediate container d3fe1f81fab7
- ---> dd8b07b2adfd
-Step 14/15 : EXPOSE 8080
- ---> Running in 1f1601f2dcc2
-Removing intermediate container 1f1601f2dcc2
- ---> 9078648b7a2e
-Step 15/15 : CMD $CATALINA_HOME/bin/startup.sh && tail -F $CATALINA_HOME/logs/catalina.out
- ---> Running in 6a3b2aefaf44
-Removing intermediate container 6a3b2aefaf44
- ---> 23a538c107a0
-Successfully built 23a538c107a0
-Successfully tagged tomcat-test:latest
+PS D:\Docker\test\tomcat> docker build -t mytomcat .
+[+] Building 1.3s (10/10) FINISHED
+ => [internal] load build definition from Dockerfile                                                                                                                          0.0s
+ => => transferring dockerfile: 785B                                                                                                                                          0.0s
+ => [internal] load .dockerignore                                                                                                                                             0.0s
+ => => transferring context: 2B                                                                                                                                               0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:latest                                                                                                              0.0s
+ => [internal] load build context                                                                                                                                             0.0s
+ => => transferring context: 128B                                                                                                                                             0.0s
+ => [1/5] FROM docker.io/library/ubuntu                                                                                                                                       0.0s
+ => CACHED [2/5] COPY readme.txt /usr/local/readme.txt                                                                                                                        0.0s
+ => CACHED [3/5] WORKDIR /usr/local/                                                                                                                                          0.0s
+ => CACHED [4/5] ADD jdk-8u301-linux-x64.tar.gz /usr/local/                                                                                                                   0.0s
+ => CACHED [5/5] ADD apache-tomcat-9.0.55.tar.gz /usr/local/                                                                                                                  0.0s
+ => exporting to image                                                                                                                                                        1.2s
+ => => exporting layers                                                                                                                                                       1.2s
+ => => writing image sha256:5548af20aa9bd1b9a4386b236d94576f719bdd4bef0874e152ce4dc906d92acc                                                                                  0.0s
+ => => naming to docker.io/library/mytomcat                                                                                                                                   0.0s
 ```
 
 > 查看镜像
 
 ```shell
-[root@sail tomcat]# docker images
-REPOSITORY        TAG       IMAGE ID       CREATED          SIZE
-tomcat-test       latest    23a538c107a0   25 minutes ago   673MB
+PS D:\Docker\test\tomcat> docker images
+REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+mytomcat     latest    5548af20aa9b   5 minutes ago   450MB
 ```
 
 > 启动镜像
 
 ```shell
-[root@sail tomcat]# docker run -d -p 8080:8080 --name sail-tomcat -v /home/sail/tomcat/webapps:/usr/local/apache-tomcat-9.0.55/webapps -v /home/sail/tomcat/logs:/usr/local/apache-tomcat-9.0.55/logs tomcat-test 
-9d391e13efdc495206429dbdb0392180a7bd3a4750cbc1419c31c80cd69c6b7b
-[root@sail tomcat]#
+PS D:\Docker\test\tomcat> docker run -d -p 8081:8080 --name mytomcat1 `
+-v /home/sail/tomcat/webapps:/usr/local/apache-tomcat-9.0.55/webapps `
+-v /home/sail/tomcat/logs:/usr/local/apache-tomcat-9.0.55/logs `
+mytomcat
+
+cf1c8c6e7c20c6d071a744757ff0e08cd7449afad7d04c69e1618d6b1c631c8e
 ```
 
 启动时将 tomcat 的 **webapps** 和 **logs** 目录都挂载到了本机。
@@ -766,17 +681,17 @@ logs  webapps
 > 进入容器
 
 ```shell
-[root@sail tomcat]# docker ps
-CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                    NAMES
-9d391e13efdc   tomcat-test   "/bin/sh -c '$CATALI…"   24 minutes ago   Up 24 minutes   0.0.0.0:8080->8080/tcp   sail-tomcat
+PS D:\Docker\test\tomcat> docker ps
+CONTAINER ID   IMAGE      COMMAND                  CREATED         STATUS         PORTS                    NAMES
+cf1c8c6e7c20   mytomcat   "/bin/sh -c '$CATALI…"   13 seconds ago   Up 12 seconds   0.0.0.0:8081->8080/tcp   mytomcat1
 
-[root@sail tomcat]# docker exec -it 9d391e13efdc /bin/bash
-[root@9d391e13efdc local]# ls
-apache-tomcat-9.0.55  bin  etc    games  include    jdk1.8.0_301  lib  lib64  libexec  readme.txt  sbin  share  src
+PS D:\Docker\test\tomcat> docker exec -it mytomcat1 /bin/bash
+root@17dfce19adab:/usr/local# ls
+apache-tomcat-9.0.55  bin  etc  games  include  jdk1.8.0_301  lib  man  readme.txt  sbin  share  src
 
-[root@9d391e13efdc local]# cd apache-tomcat-9.0.55/
-[root@9d391e13efdc apache-tomcat-9.0.55]# ls
-BUILDING.txt  CONTRIBUTING.md  LICENSE    NOTICE    README.md  RELEASE-NOTES  RUNNING.txt  bin  conf  lib  logs  temp  webapps  work
+root@17dfce19adab:/usr/local# cd apache-tomcat-9.0.55/
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.55# ls
+BUILDING.txt  CONTRIBUTING.md  LICENSE  NOTICE  README.md  RELEASE-NOTES  RUNNING.txt  bin  conf  lib  logs  temp  webapps  work
 ```
 
 jdk 和 readme.txt 都是具备了的，且 tomcat 目录下的文件也是完整的。
@@ -786,18 +701,48 @@ jdk 和 readme.txt 都是具备了的，且 tomcat 目录下的文件也是完�
 这里以 logs 为例，我们先进入 tomcat 容器中的 logs 文件夹查看日志内容。
 
 ```shell
-[root@9d391e13efdc apache-tomcat-9.0.55]# cd logs
-[root@9d391e13efdc logs]# ls
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.55# cd logs
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.55/logs# ls
 catalina.out
-[root@9d391e13efdc logs]# cat catalina.out 
-/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: line 504: /usr/local//jdk1.8.0_301-amd64/bin/java: No such file or directory
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.
+cat: catalina.: No such file or directory
+root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# ls
+catalina.2022-06-10.log  catalina.out  host-manager.2022-06-10.log  localhost.2022-06-10.log  localhost_access_log.2022-06-10.txt  manager.2022-06-10.log
+root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.out
+/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
+/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
+10-Jun-2022 13:32:09.792 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.55
+10-Jun-2022 13:32:09.793 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 10 2021 08:26:45 UTC
+10-Jun-2022 13:32:09.793 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 9.0.55.0
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            5.10.16.3-microsoft-standard-WSL2
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /usr/local/jdk1.8.0_301/jre
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           1.8.0_301-b09
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/apache-tomcat-9.0.55
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/apache-tomcat-9.0.55
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local//apache-tomcat-9.0.55/conf/logging.properties
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local//apache-tomcat-9.0.55
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local//apache-tomcat-9.0.55
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local//apache-tomcat-9.0.55/temp
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib]
+10-Jun-2022 13:32:10.012 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+10-Jun-2022 13:32:10.032 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [337] milliseconds
+10-Jun-2022 13:32:10.053 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+10-Jun-2022 13:32:10.053 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/9.0.55]
+10-Jun-2022 13:32:10.059 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+10-Jun-2022 13:32:10.113 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [80] milliseconds
 ```
 
 然后再退出查看主机上挂载的 logs 文件夹。
 
 ```shell
-[root@9d391e13efdc logs]# exit
-exit
 [root@sail tomcat]# cd /home/sail/tomcat/logs
 [root@sail logs]# ls
 catalina.out
@@ -807,6 +752,23 @@ catalina.out
 
 两个地方 logs 下的文件内容一致，说明挂载成功。
 
+> 访问
+
+```shell
+PS D:\Docker\test\tomcat> curl http://127.0.0.1:8081
+curl : HTTP Status 404 – Not Found
+Type Status Report
+Description The origin server did not find a current representation for the target resource or is not willing to disclose that one exists.
+Apache Tomcat/9.0.55
+所在位置 行:1 字符: 1
++ curl http://127.0.0.1:8081
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+```
+
+
+
 # 发布镜像到 Docker Hub
 
 > 注册账号
@@ -814,14 +776,21 @@ catalina.out
 如果没有 Docker Hub 账号，先注册账号：https://hub.docker.com/
 
 > 登录 Docker Hub 账号
+>
+> `docker login`
+>
+> `docker logout`
 
 ```shell
-[root@sail logs]# docker login -u asailing
-Password: 
-WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
-Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+PS D:\Docker\test\tomcat> docker login -u lihongtu12138@outlook.com
+Password:
+Error response from daemon: Get "https://registry-1.docker.io/v2/": unauthorized: incorrect username or password
+PS D:\Docker\test\tomcat> docker login -u nagatoyuki0943
+Password:
 Login Succeeded
+
+Logging in with your password grants your terminal complete access to your account.
+For better security, log in with a limited-privilege personal access token. Learn more at https://docs.docker.com/go/access-tokens/
 ```
 
 ## 发布镜像
@@ -831,12 +800,14 @@ Login Succeeded
 > 直接发布镜像
 
 ```shell
-[root@sail logs]# docker push centos-test
+PS D:\Docker\test\tomcat> docker push mytomcat
 Using default tag: latest
-The push refers to repository [docker.io/library/centos-test]
-de70c523870b: Preparing 
-909db45c4bc4: Preparing 
-74ddd0ec08fa: Preparing 
+The push refers to repository [docker.io/library/mytomcat]
+eb4ecd3480e7: Preparing
+b9e5700feb98: Preparing
+5f70bf18a086: Preparing
+69835603e7e4: Preparing
+9f54eef41275: Preparing
 denied: requested access to the resource is denied
 ```
 
@@ -851,11 +822,22 @@ denied: requested access to the resource is denied
 > 必须以 `账号名/镜像名:标签` 的格式命令才能提交。
 
 ```shell
-[root@sail logs]# docker tag d58be7785771 asailing/centos:1.0
-[root@sail logs]# docker images
-REPOSITORY        TAG       IMAGE ID       CREATED        SIZE
-asailing/centos   1.0       d58be7785771   29 hours ago   323MB
-centos-test       latest    d58be7785771   29 hours ago   323MB
+PS D:\Docker\test\tomcat> docker images
+REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+mytomcat     latest    e6888987ee86   34 minutes ago   450MB
+archlinux    latest    0a6134a84991   8 days ago       370MB
+mysql        latest    3218b38490ce   5 months ago     516MB
+ubuntu       latest    ba6acccedd29   7 months ago     72.8MB
+
+PS D:\Docker\test\tomcat> docker tag e6888987ee86 nagatoyuki0943/mytomcat:1.0
+
+PS D:\Docker\test\tomcat> docker images
+REPOSITORY                TAG       IMAGE ID       CREATED          SIZE
+mytomcat                  latest    e6888987ee86   35 minutes ago   450MB
+nagatoyuki0943/mytomcat   1.0       e6888987ee86   36 minutes ago   450MB	# 多出来的
+archlinux                 latest    0a6134a84991   8 days ago       370MB
+mysql                     latest    3218b38490ce   5 months ago     516MB
+ubuntu                    latest    ba6acccedd29   7 months ago     72.8MB
 ```
 
 此时会多出一个相同 ID 但是标签和名字不同的镜像。
@@ -863,12 +845,14 @@ centos-test       latest    d58be7785771   29 hours ago   323MB
 > 再次发布镜像
 
 ```shell
-[root@sail logs]# docker push asailing/centos:1.0
-The push refers to repository [docker.io/asailing/centos]
-de70c523870b: Pushed 
-909db45c4bc4: Pushed 
-74ddd0ec08fa: Pushed 
-1.0: digest: sha256:ecefaae6c5a2cab84693175ea3b18d0d0a7aa0160e33a0bf3eb4ab626b10f0f1 size: 953
+PS D:\Docker\test\tomcat> docker push nagatoyuki0943/mytomcat:1.0
+The push refers to repository [docker.io/nagatoyuki0943/mytomcat]
+eb4ecd3480e7: Pushed
+b9e5700feb98: Pushed
+5f70bf18a086: Pushed
+69835603e7e4: Pushed
+9f54eef41275: Pushed
+1.0: digest: sha256:c7411aac293b14b0ffcc2a04b20fef95ee8d5a59c4ef055b318f5e040ea0d278 size: 1367
 ```
 
 这样就能发布成功了。且可以发现，**镜像的发布也是分层发布的**。

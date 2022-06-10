@@ -298,7 +298,7 @@ REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
 
 # 运行镜像
 
-## **docker run -it image --name="名字" image -p 主机端口:容器端口**
+## **docker run -it -d image --name="名字" image -p 主机端口:容器端口**
 
 > 语法
 

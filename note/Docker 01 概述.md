@@ -138,5 +138,5 @@ Docker 主要用的是宿主机的内核，而 VM 需要 **Guest OS**。
 
 # 命令
 
-![img](Docker 01 概述.assets/kuangstudy3a77ae60-28ce-4866-b706-c0270f72aaff.png)
+![img](Docker 01 概述.assets/docker流程.png)
 

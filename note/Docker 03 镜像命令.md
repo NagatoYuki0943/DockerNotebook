@@ -350,3 +350,54 @@ bin  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  s
 ```
 
 > 由此可以看出，容器就是一个微型的 Linux 系统。它只保留了最核心的功能和最基本的命令，方便进行操作。
+
+# 保存提取
+
+## 保存镜像
+
+### **docker save -o 输出路径 id/name**
+
+- `-o` 指定输出文件
+
+```shell
+PS D:\docker\DockerNotebook\test\tomcat> docker save --help
+
+Usage:  docker save [OPTIONS] IMAGE [IMAGE...]
+
+Save one or more images to a tar archive (streamed to STDOUT by default)
+
+Options:
+  -o, --output string   Write to a file, instead of STDOUT
+```
+
+> test
+
+```shell
+PS D:\docker\DockerNotebook\test\tomcat> docker save -o archlinux.tar archlinux
+PS D:\docker\DockerNotebook\test\tomcat> ls | findstr arch
+-a----     2022/6/11/???     16:31      379761664 archlinux.tar
+```
+
+## 载入镜像
+
+### **docker load -i 输入路径 id/name**
+
+```shell
+PS D:\docker\DockerNotebook\test\tomcat> docker load --help
+
+Usage:  docker load [OPTIONS]
+
+Load an image from a tar archive or STDIN
+
+Options:
+  -i, --input string   Read from tar archive file, instead of STDIN
+  -q, --quiet          Suppress the load output
+```
+
+> test
+
+```shell
+PS D:\docker\DockerNotebook\test\tomcat> docker load -i .\archlinux.tar
+Loaded image: archlinux:latest
+```
+

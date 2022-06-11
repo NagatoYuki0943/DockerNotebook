@@ -130,7 +130,7 @@ CMD ["/usr/bin/bash"]
 
 ## 构建镜像
 
-### **docker build**
+### **docker build -f ./Dockerfile -t myname .**
 
 Dockerfile 编写好后，需要使用 `docker build` 命令运行。
 
@@ -589,7 +589,7 @@ FROM ubuntu
 
 LABEL \
     author="yuki<2487575080@qq.com>" \
-    build-date="2022-06-10 21:05:03"
+    build-date="2022-06-11 15:05:03"
 
 COPY readme.txt /usr/local/readme.txt
 
@@ -600,7 +600,7 @@ WORKDIR $MYPATH
 # 添加文件 ADD会自动解压文件
 ADD jdk-8u301-linux-x64.tar.gz $MYPATH
 
-ADD apache-tomcat-9.0.55.tar.gz $MYPATH
+ADD apache-tomcat-9.0.64.tar.gz $MYPATH
 
 # RUN apt update
 
@@ -611,9 +611,9 @@ ENV JAVA_HOME $MYPATH/jdk1.8.0_301
 
 ENV CLASSPATH $JAVA_HOME/lib
 
-ENV CATALINA_HOME $MYPATH/apache-tomcat-9.0.55
+ENV CATALINA_HOME $MYPATH/apache-tomcat-9.0.64
 
-ENV CATALINA_BASH $MYPATH/apache-tomcat-9.0.55
+ENV CATALINA_BASH $MYPATH/apache-tomcat-9.0.64
 
 # :拼接环境变量
 ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/bin:$CATALINA_HOME/lib
@@ -628,43 +628,41 @@ CMD $CATALINA_HOME/bin/startup.sh && tail -F $CATALINA_HOME/logs/catalina.out
 > 构建镜像
 
 ```shell
-PS D:\Docker\test\tomcat> docker build -t mytomcat .
-[+] Building 1.3s (10/10) FINISHED
- => [internal] load build definition from Dockerfile                                                                                                                          0.0s
- => => transferring dockerfile: 785B                                                                                                                                          0.0s
- => [internal] load .dockerignore                                                                                                                                             0.0s
- => => transferring context: 2B                                                                                                                                               0.0s
- => [internal] load metadata for docker.io/library/ubuntu:latest                                                                                                              0.0s
- => [internal] load build context                                                                                                                                             0.0s
- => => transferring context: 128B                                                                                                                                             0.0s
- => [1/5] FROM docker.io/library/ubuntu                                                                                                                                       0.0s
- => CACHED [2/5] COPY readme.txt /usr/local/readme.txt                                                                                                                        0.0s
- => CACHED [3/5] WORKDIR /usr/local/                                                                                                                                          0.0s
- => CACHED [4/5] ADD jdk-8u301-linux-x64.tar.gz /usr/local/                                                                                                                   0.0s
- => CACHED [5/5] ADD apache-tomcat-9.0.55.tar.gz /usr/local/                                                                                                                  0.0s
- => exporting to image                                                                                                                                                        1.2s
- => => exporting layers                                                                                                                                                       1.2s
- => => writing image sha256:5548af20aa9bd1b9a4386b236d94576f719bdd4bef0874e152ce4dc906d92acc                                                                                  0.0s
- => => naming to docker.io/library/mytomcat                                                                                                                                   0.0s
+[+] Building 1.4s (10/10) FINISHED
+ => [internal] load build definition from Dockerfile                                                                                                                       0.0s
+ => => transferring dockerfile: 778B                                                                                                                                       0.0s
+ => [internal] load .dockerignore                                                                                                                                          0.0s
+ => => transferring context: 2B                                                                                                                                            0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:latest                                                                                                           0.0s
+ => [internal] load build context                                                                                                                                          0.9s
+ => => transferring context: 157.14MB                                                                                                                                      0.9s
+ => [1/5] FROM docker.io/library/ubuntu                                                                                                                                    0.0s
+ => CACHED [2/5] COPY readme.txt /usr/local/readme.txt                                                                                                                     0.0s
+ => CACHED [3/5] WORKDIR /usr/local/                                                                                                                                       0.0s
+ => CACHED [4/5] ADD jdk-8u301-linux-x64.tar.gz /usr/local/                                                                                                                0.0s
+ => [5/5] ADD apache-tomcat-9.0.64.tar.gz /usr/local/                                                                                                                      0.4s
+ => exporting to image                                                                                                                                                     0.1s
+ => => exporting layers                                                                                                                                                    0.1s
+ => => writing image sha256:07e5c2e66e6035d0b881454cf8af6066c9f7cd028e894d47faa45a2b59dce77a                                                                               0.0s
+ => => naming to docker.io/library/mytomcat
 ```
 
 > 查看镜像
 
 ```shell
-PS D:\Docker\test\tomcat> docker images
-REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
-mytomcat     latest    5548af20aa9b   5 minutes ago   450MB
+PS D:\docker\DockerNotebook\test> docker images
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+mytomcat     latest    07e5c2e66e60   35 seconds ago   450MB
 ```
 
 > 启动镜像
 
 ```shell
-PS D:\Docker\test\tomcat> docker run -d -p 8081:8080 --name mytomcat1 `
--v /home/sail/tomcat/webapps:/usr/local/apache-tomcat-9.0.55/webapps `
--v /home/sail/tomcat/logs:/usr/local/apache-tomcat-9.0.55/logs `
+PS D:\docker\DockerNotebook\test> docker run -d -p 8081:8080 --name mytomcat1 `
+-v /home/tomcat/webapps:/usr/local/apache-tomcat-9.0.64/webapps `
+-v /home/tomcat/logs:/usr/local/apache-tomcat-9.0.64/logs `
 mytomcat
-
-cf1c8c6e7c20c6d071a744757ff0e08cd7449afad7d04c69e1618d6b1c631c8e
+f29795a6468d367087e5592b8a89e3966228f77e8f3e796d145d1723725e36f7
 ```
 
 启动时将 tomcat 的 **webapps** 和 **logs** 目录都挂载到了本机。
@@ -672,7 +670,7 @@ cf1c8c6e7c20c6d071a744757ff0e08cd7449afad7d04c69e1618d6b1c631c8e
 > 查看挂载目录
 
 ```shell
-[root@sail tomcat]# ls /home/sail/tomcat
+[root@tomcat tomcat]# ls /home/tomcat
 logs  webapps
 ```
 
@@ -687,10 +685,10 @@ cf1c8c6e7c20   mytomcat   "/bin/sh -c '$CATALI…"   13 seconds ago   Up 12 seco
 
 PS D:\Docker\test\tomcat> docker exec -it mytomcat1 /bin/bash
 root@17dfce19adab:/usr/local# ls
-apache-tomcat-9.0.55  bin  etc  games  include  jdk1.8.0_301  lib  man  readme.txt  sbin  share  src
+apache-tomcat-9.0.64  bin  etc  games  include  jdk1.8.0_301  lib  man  readme.txt  sbin  share  src
 
-root@17dfce19adab:/usr/local# cd apache-tomcat-9.0.55/
-root@17dfce19adab:/usr/local/apache-tomcat-9.0.55# ls
+root@17dfce19adab:/usr/local# cd apache-tomcat-9.0.64/
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.64# ls
 BUILDING.txt  CONTRIBUTING.md  LICENSE  NOTICE  README.md  RELEASE-NOTES  RUNNING.txt  bin  conf  lib  logs  temp  webapps  work
 ```
 
@@ -701,16 +699,16 @@ jdk 和 readme.txt 都是具备了的，且 tomcat 目录下的文件也是完�
 这里以 logs 为例，我们先进入 tomcat 容器中的 logs 文件夹查看日志内容。
 
 ```shell
-root@17dfce19adab:/usr/local/apache-tomcat-9.0.55# cd logs
-root@17dfce19adab:/usr/local/apache-tomcat-9.0.55/logs# ls
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.64# cd logs
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.64/logs# ls
 catalina.out
-root@17dfce19adab:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.
+root@17dfce19adab:/usr/local/apache-tomcat-9.0.64/logs# cat catalina.
 cat: catalina.: No such file or directory
-root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# ls
+root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.64/logs# ls
 catalina.2022-06-10.log  catalina.out  host-manager.2022-06-10.log  localhost.2022-06-10.log  localhost_access_log.2022-06-10.txt  manager.2022-06-10.log
-root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.out
-/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
-/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
+root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.64/logs# cat catalina.out
+/usr/local//apache-tomcat-9.0.64/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
+/usr/local//apache-tomcat-9.0.64/bin/catalina.sh: 1: eval: /usr/local//jdk1.8.0_301-amd64/bin/java: not found
 10-Jun-2022 13:32:09.792 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.55
 10-Jun-2022 13:32:09.793 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 10 2021 08:26:45 UTC
 10-Jun-2022 13:32:09.793 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 9.0.55.0
@@ -720,17 +718,17 @@ root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.out
 10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /usr/local/jdk1.8.0_301/jre
 10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           1.8.0_301-b09
 10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
-10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/apache-tomcat-9.0.55
-10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/apache-tomcat-9.0.55
-10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local//apache-tomcat-9.0.55/conf/logging.properties
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/apache-tomcat-9.0.64
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/apache-tomcat-9.0.64
+10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local//apache-tomcat-9.0.64/conf/logging.properties
 10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
 10-Jun-2022 13:32:09.794 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
 10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
 10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
 10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
-10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local//apache-tomcat-9.0.55
-10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local//apache-tomcat-9.0.55
-10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local//apache-tomcat-9.0.55/temp
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local//apache-tomcat-9.0.64
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local//apache-tomcat-9.0.64
+10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local//apache-tomcat-9.0.64/temp
 10-Jun-2022 13:32:09.795 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The Apache Tomcat Native library which allows using OpenSSL was not found on the java.library.path: [/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib]
 10-Jun-2022 13:32:10.012 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
 10-Jun-2022 13:32:10.032 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [337] milliseconds
@@ -747,7 +745,7 @@ root@cf1c8c6e7c20:/usr/local/apache-tomcat-9.0.55/logs# cat catalina.out
 [root@sail logs]# ls
 catalina.out
 [root@sail logs]# cat catalina.out 
-/usr/local//apache-tomcat-9.0.55/bin/catalina.sh: line 504: /usr/local//jdk1.8.0_301-amd64/bin/java: No such file or directory
+/usr/local//apache-tomcat-9.0.64/bin/catalina.sh: line 504: /usr/local//jdk1.8.0_301-amd64/bin/java: No such file or directory
 ```
 
 两个地方 logs 下的文件内容一致，说明挂载成功。

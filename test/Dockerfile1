@@ -1,0 +1,3 @@
+FROM archlinux
+
+ENTRYPOINT ["ls", "-a"]

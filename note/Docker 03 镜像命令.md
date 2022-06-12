@@ -298,7 +298,7 @@ REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
 
 # 运行镜像
 
-## **docker run -it -d image --name="名字" image -p 主机端口:容器端口**
+## **docker run -it -d --name="名字" -p 主机端口:容器端口 image**
 
 > 语法
 
@@ -318,23 +318,23 @@ docker run [参数] 镜像名
 
 - `-e`：指定运行环境。
 
-- `-p`：随机指定端口。
+- `-p`：指定端口。
 
-- ```shell
-    -p
-    ```
-
+- `-P`：随即制定端口
+    
     ：指定容器的端口，如：
 
     ```shell
     -p 8080:8080
     ```
-
+    
     。还可以有以下写法：
 
     - `-p ip:主机端口:容器端口`
     - `-p 主机端口:容器端口`
     - `-p 容器端口`
+    
+- `-v`：指定数据卷,详情查看Docker 12 数据卷
 
 > 运行 centos 镜像
 

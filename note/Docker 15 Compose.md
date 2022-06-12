@@ -14,6 +14,17 @@ https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
 # 简介
 
+Using Compose is basically a three-step process:
+
+1. Define your app’s environment with a `Dockerfile` so it can be reproduced anywhere.
+2. Define the services that make up your app in `docker-compose.yml` so they can be run together in an isolated environment.
+3. Run `docker compose up` and the [Docker compose command](https://docs.docker.com/compose/#compose-v2-and-the-new-docker-compose-command) starts and runs your entire app. You can alternatively run `docker-compose up` using the docker-compose binary.
+
+Compose重要概念
+
+- 服务services，容器，应用。（web，redis，mysql。。。）
+- 项目project，一组关联的容器。（worldpress）
+
 使用 **Docker** 的时候，定义 **Dockerfile** 文件，然后使用 `docker build`、`docker run` 等命令操作容器。
 
 然而微服务架构的应用系统一般包含若干个微服务，每个微服务一般都会部署多个实例，如果每个微服务都要手动启停，这样效率很低，也不方便管理。
@@ -136,8 +147,10 @@ services:
 Docker Compose 是 Docker 的一个开源项目，目前托管到了 GitHub，需要前往 GitHub 下载。
 
 ```shell
-sudo curl -L "https://github.com/docker/compose/releases/download/2.2.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# 下载并放到 /usr/bin 目录下，这是用户软件位置
+sudo curl -L "https://github.com/docker/compose/releases/download/2.6.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
+# 增加运行权限
 chmod +x /usr/local/bin/docker-compose
 ```
 
@@ -146,7 +159,7 @@ chmod +x /usr/local/bin/docker-compose
 推荐使用 [道客](https://www.daocloud.io/) 提供的 [Docker 极速下载](http://get.daocloud.io/#install-compose) 进行安装。
 
 ```shell
-curl -L https://get.daocloud.io/docker/compose/releases/download/v2.2.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+curl -L https://get.daocloud.io/docker/compose/releases/download/v2.6.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 
 chmod +x /usr/local/bin/docker-compose
 ```
@@ -154,7 +167,7 @@ chmod +x /usr/local/bin/docker-compose
 > 安装
 
 ```shell
-[root@sail ~]# curl -L https://get.daocloud.io/docker/compose/releases/download/v2.2.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+[root@sail ~]# curl -L https://get.daocloud.io/docker/compose/releases/download/v2.6.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   423  100   423    0     0    394      0  0:00:01  0:00:01 --:--:--   394
@@ -180,7 +193,7 @@ docker-compose
 
 ```shell
 [root@sail bin]# docker-compose version
-Docker Compose version v2.2.3
+Docker Compose version v2.6.0
 ```
 
 显示了版本即代表 Docker Compose 安装完成。
@@ -197,6 +210,8 @@ rm /usr/local/bin/docker-compose
 
 ## 构建
 
+https://docs.docker.com/compose/gettingstarted/
+
 > 创建项目目录
 
 ```shell
@@ -206,10 +221,6 @@ rm /usr/local/bin/docker-compose
 ```
 
 > 创建 app.py
-
-```shell
-[root@sail docker-compose]# vim app.py
-```
 
 ```python
 import time
@@ -238,8 +249,6 @@ redis 是应用容器中 redis 容器的主机名，在同一网络下可以通�
 > 创建 requirements.txt
 
 ```shell
-[root@sail docker-compose]# vim requirements.txt
-[root@sail docker-compose]# cat requirements.txt 
 flask
 redis
 ```
@@ -247,8 +256,6 @@ redis
 > 创建 Dockerfile
 
 ```shell
-[root@sail docker-compose]# vim Dockerfile
-
 FROM python:3.7-alpine
 WORKDIR /code
 ENV FLASK_APP=app.py
@@ -258,14 +265,14 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 EXPOSE 5000
 COPY . .
-CMD ["flask", "run"]
+CMD ["python", "app.py"]
 ```
 
 > 创建 docker-compose.yml
+>
+> 定义了整个服务需要的环境，这里有两个，是web和redis
 
 ```shell
-[root@sail docker-compose]# vim docker-compose.yml
-
 version: "3.3"
 services:
   web:
@@ -277,6 +284,8 @@ services:
 ```
 
 这个文件定义了两个服务：web 和 redis。
+
+> `app.py requirements.txt Dockerfile docker-compose.yml`这四个文件都在`docker-compose`目录下
 
 ## 启动
 
@@ -439,9 +448,11 @@ CONTAINER ID   IMAGE                COMMAND                  CREATED         STA
 b4da6da4364f   redis:alpine         "docker-entrypoint.s…"   8 minutes ago   Up 8 minutes   6379/tcp                 docker-compose-redis-1
 ```
 
-可以看到容器命名都带有数字，是因为需要集群管理，数字代表副本序号。
+可以看到容器命名都带有数字，是因为需要集群管理，数字代表副本数量。
 
 > 查看网络
+>
+> 每个compose会新建一个网络
 
 ```shell
 [root@sail docker-compose]# docker network ls
@@ -510,3 +521,43 @@ c3ff850e96f0   none      null      local
 # 更多配置
 
 https://docs.docker.com/compose/compose-file/compose-file-v3/#compose-file-structure-and-examples
+
+
+
+## yaml 规则
+
+https://docs.docker.com/compose/compose-file/
+
+```yaml
+version: "3.3"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+```
+
+```yaml
+# 三层
+
+version： '' # 版本
+services： 	# 服务
+  服务1:
+  	# 服务配置
+	images
+	build
+	network
+	...
+  服务2:
+  	...
+
+# 其他配置 网络，卷，全局规则
+volumes:
+
+networks:
+
+
+```
+

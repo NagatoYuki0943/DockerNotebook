@@ -602,7 +602,7 @@ PS C:\Users\Frostbite> docker inspect archlinux2
 
 ## 删除自定义网络
 
-### **docker network connect netname**
+### **docker network rm netname**
 
 ```shell
 PS C:\Users\Frostbite> docker network ls
@@ -625,6 +625,8 @@ cac04e36af29   none      null      local
 ## 查看自定义网络
 
 ### **docker network inspect id/name**
+
+> **注意:如果系统关机,这里看不到谁使用了这个自定义网络,所以删除网络时要小心**
 
 ```shell
 PS C:\Users\Frostbite> docker network inspect archlinux
@@ -948,3 +950,5 @@ PS C:\Users\Frostbite> docker network inspect mynet
     }
 ]
 ```
+
+## **注意:删除网络时要断开所有系统,不然系统无法开机**

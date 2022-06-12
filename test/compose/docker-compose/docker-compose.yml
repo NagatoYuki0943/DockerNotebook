@@ -1,0 +1,10 @@
+[root@sail docker-compose]# vim docker-compose.yml
+
+version: "3.3"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"

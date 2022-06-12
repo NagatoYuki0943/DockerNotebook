@@ -585,7 +585,7 @@ c3d59f55d600   centos    "/bin/sh -c 'while t…"   24 minutes ago   Up 5 second
 
 容器是一个微型的 Linux 系统，我们通常需要进入容器进行操作。
 
-## **docker exec id/name**
+## **docker exec -it id/name**
 
 使用 `docker exec` 可以进入容器并开启一个新的终端，可以在里面操作。
 
@@ -661,6 +661,8 @@ test.java
 [root@96ed3fe3e7f1 home]# exit
 exit
 ```
+
+## **docker cp name/id:file file**
 
 > 退出容器后，不管容器是否启动，都可以复制容器中的文件到主机上
 

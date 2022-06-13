@@ -291,6 +291,10 @@ services:
 
 ### docker-compose up
 
+参数和docker相同
+
+- `-d` 后台启动
+
 > 运行应用
 
 在项目目录中，运行 `docker-compose up` 来启动应用程序。
@@ -557,7 +561,61 @@ services： 	# 服务
 volumes:
 
 networks:
-
-
 ```
+
+
+
+# worldpress
+
+https://docs.docker.com/samples/wordpress/
+
+
+
+1. yml
+
+    如果 8000被占用就使用其他的
+
+```yml
+version: "3.9"
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+
+  wordpress:
+    depends_on:
+      - db
+    image: wordpress:latest
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - "8000:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+volumes:
+  db_data: {}
+  wordpress_data: {}
+```
+
+2. `docker-compose up -d` start
+
+3. `http://localhost:8000` 访问
+
+# 开源项目流程
+
+1. 下载项目,有 `docker-compose.yml`
+2. 如果需要文件就新建,如 `Dockerfile`
+3. 文件齐全,启动项目  `docker-compose up -d` start
 

@@ -1,5 +1,3 @@
-[root@sail docker-compose]# vim docker-compose.yml
-
 version: "3.3"
 services:
   web:

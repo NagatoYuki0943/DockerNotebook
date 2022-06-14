@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  archlinux1:
+    image: "archlinux"
+    networks:
+      - myarch
+  archlinux2:
+    image: "archlinux"
+    networks:
+      - myarch

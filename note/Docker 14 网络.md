@@ -951,4 +951,23 @@ PS C:\Users\Frostbite> docker network inspect mynet
 ]
 ```
 
-## **注意:删除网络时要断开所有系统,不然系统无法开机**
+## **注意:删除网络时要断开所有系统,不然系统无法开机(附解决办法)**
+
+> 解决办法: 创建一个和原来相同的网络,然后将不能开机的container从这个网络断开,断开时要使用network名字而不是id
+
+```shell
+# 创建一个同名网络,地址可以不同
+PS C:\Users\Frostbite> docker network create --subnet 192.168.1.0/24 --gateway 192.168.1.1 alpinenet
+
+# 断开网络
+PS C:\Users\Frostbite> docker network disconnect alpinenet myalpine2
+
+# 就可以开机了
+PS C:\Users\Frostbite> docker start myalpine2
+myalpine2
+PS C:\Users\Frostbite> docker attach myalpine2
+/ # ls
+bin    etc    lib    mnt    proc   run    srv    tmp    var
+dev    home   media  opt    root   sbin   sys    usr
+```
+

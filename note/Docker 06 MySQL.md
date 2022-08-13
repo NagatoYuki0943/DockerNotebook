@@ -3,7 +3,8 @@
 ```
 docker pull mysql:latest
 
-docker run -d --name mysql1 -p 3360:3307 -e MYSQL_ROOT_PASSWORD=123456 mysql
+#                              主机端口:容器端口
+docker run -d --name mysql1 -p 3307:3306 -e MYSQL_ROOT_PASSWORD=root mysql
 
 docker start mysql1
 docker stop mysql1

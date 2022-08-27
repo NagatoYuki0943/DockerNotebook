@@ -817,6 +817,12 @@ denied: requested access to the resource is denied
 
 我们可以使用 `docker tag` 命令给镜像加一个标签。
 
+```
+docker tag id/name new_tag
+```
+
+
+
 > 必须以 `账号名/镜像名:标签` 的格式命令才能提交。
 
 ```shell
@@ -854,6 +860,52 @@ b9e5700feb98: Pushed
 ```
 
 这样就能发布成功了。且可以发现，**镜像的发布也是分层发布的**。
+
+> mysql测试
+
+```powershell
+C:\Windows\System32> docker ps -a
+CONTAINER ID   IMAGE       COMMAND                  CREATED          STATUS                      PORTS     NAMES
+65a6359c94bb   mysql       "docker-entrypoint.s…"   36 minutes ago   Exited (0) 14 minutes ago             mysql1
+689d9fbcffd5   archlinux   "/usr/bin/bash"          4 weeks ago      Exited (137) 3 days ago               arch1
+
+C:\Windows\System32> docker commit -a'yuki' -m'mysql in debian' mysql1 mysql_debian:0.1
+sha256:64807f2dc9dcc60aa39b1d1fc6c75025801a7e4cd057e14f6f28a1131dd1aef3
+
+C:\Windows\System32> docker images
+REPOSITORY     TAG       IMAGE ID       CREATED         SIZE
+mysql_debian   0.1       64807f2dc9dc   2 seconds ago   570MB
+archlinux      latest    85959482086f   4 weeks ago     368MB
+mysql          latest    3218b38490ce   8 months ago    516MB
+
+C:\Windows\System32> docker tag mysql_debian:0.1 nagatoyuki0943/mysql_debian:0.1
+
+C:\Windows\System32> docker images
+REPOSITORY                    TAG       IMAGE ID       CREATED              SIZE
+mysql_debian                  0.1       64807f2dc9dc   About a minute ago   570MB
+nagatoyuki0943/mysql_debian   0.1       64807f2dc9dc   About a minute ago   570MB
+archlinux                     latest    85959482086f   4 weeks ago          368MB
+mysql                         latest    3218b38490ce   8 months ago         516MB
+
+C:\Windows\System32> docker push nagatoyuki0943/mysql_debian:0.1
+The push refers to repository [docker.io/nagatoyuki0943/mysql_debian]
+4985e2722e0d: Pushed
+d67a9f3f6569: Pushed
+fc8a043a3c75: Pushed
+118fee5d988a: Pushed
+c654c2afcbba: Pushed
+1d1f48e448f9: Pushed
+aad27784b762: Pushed
+0d17fee8db40: Pushed
+d7a777f6c3a4: Pushed
+a0c2a050fee2: Pushed
+0798f2528e83: Pushed
+fba7b131c5c3: Pushed
+ad6b69b54919: Pushed
+0.1: digest: sha256:c3c39e7657fbb199308879d4b5c02f32aa0f599b2563f0261a7eb47c5ec7b203 size: 3040
+```
+
+
 
 # 配置国内镜像站
 

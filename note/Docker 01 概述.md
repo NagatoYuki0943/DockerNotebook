@@ -134,6 +134,10 @@ Docker 主要用的是宿主机的内核，而 VM 需要 **Guest OS**。
 
 # 安装
 
+## win要先更新wsl 
+
+https://learn.microsoft.com/zh-cn/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package
+
 关于 Docker 的安装在我之前的博文：[Linux 12 yum方式安装Docker](https://www.kuangstudy.com/bbs/1474218745416605698) 已经介绍得很清楚，可以跳转查看。
 
 # 命令

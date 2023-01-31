@@ -274,6 +274,16 @@ https://www.bilibili.com/video/BV1og4y1q7M4?spm_id_from=333.999.0.0
 
 https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
+
+
+# 重命名容器
+
+## docker rename old_contrainer new_name
+
+
+
+
+
 # 查看日志
 
 ## **docker logs**

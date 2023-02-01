@@ -12,6 +12,63 @@ https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
 ------
 
+# 运行镜像
+
+## **docker run -it -d --name="名字" -p 主机端口:容器端口 image**
+
+> 语法
+
+```shell
+docker run [参数] 镜像名
+```
+
+> 参数
+
+- `--name`：指定容器的名称，如果正在运行该名称的容器，会报错。
+
+- `--rm`：用完即删除，通常用来测试。
+
+- `-d`：后台方式运行。
+
+- `-it`：使用交互方式运行，可以进入容器查看内容。
+
+- `-e`：指定运行环境。
+
+- `-p`：指定端口。
+
+- `-P`：随即制定端口
+
+  ：指定容器的端口，如：
+
+  ```shell
+  -p 8080:8080
+  ```
+
+  。还可以有以下写法：
+
+  - `-p ip:主机端口:容器端口`
+  - `-p 主机端口:容器端口`
+  - `-p 容器端口`
+
+- `-v`：指定数据卷,详情查看Docker 12 数据卷
+
+> 运行 centos 镜像
+
+```shell
+[root@sail ~]# docker run -it centos /bin/bash
+Unable to find image 'centos:latest' locally # 检索本地镜像，发现没有该镜像，则去仓库中搜索。
+latest: Pulling from library/centos # 开始从仓库中拉取
+a1d0c7532777: Pull complete 
+Digest: sha256:a27fd8080b517143cbbbab9dfb7c8571c40d67d534bbdee55bd6c473f432b177
+Status: Downloaded newer image for centos:latest
+[root@81c83ea42dc0 /]# ls # 由于是以交互方式运行，且进入 /bin/bash 中，此时的路径即为 centos 容器中的 /bin/bash
+bin  dev  etc  home  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+```
+
+> 由此可以看出，容器就是一个微型的 Linux 系统。它只保留了最核心的功能和最基本的命令，方便进行操作。
+
+
+
 # 查看容器
 
 ## **docker ps -aq**
@@ -278,7 +335,7 @@ https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
 # 重命名容器
 
-## docker rename old_contrainer new_name
+## **docker rename old_contrainer new_name**
 
 
 

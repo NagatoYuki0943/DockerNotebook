@@ -14,7 +14,7 @@ https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
 # 运行镜像
 
-## **docker run -it -d --name="名字" -p 主机端口:容器端口 image**
+## **docker run -it -d --name="名字" -p 主机端口:容器端口 -v 主机目录:容器目录 --net=netname image**
 
 > 语法
 
@@ -34,9 +34,7 @@ docker run [参数] 镜像名
 
 - `-e`：指定运行环境。
 
-- `-p`：指定端口。
-
-- `-P`：随即制定端口
+- `-p`：指定端口 主机端口:容器端口。
 
   ：指定容器的端口，如：
 
@@ -50,7 +48,13 @@ docker run [参数] 镜像名
   - `-p 主机端口:容器端口`
   - `-p 容器端口`
 
-- `-v`：指定数据卷,详情查看Docker 12 数据卷
+- `-v`：指定数据卷,详情查看 Docker 12 数据卷
+
+  ```shell
+  -v 主机目录:容器目录
+  ```
+
+- `--net`: 指定网络名字,详情查看 Docker 14 网络
 
 > 运行 centos 镜像
 
@@ -652,6 +656,28 @@ c3d59f55d600   centos    "/bin/sh -c 'while t…"   24 minutes ago   Up 5 second
 
 容器是一个微型的 Linux 系统，我们通常需要进入容器进行操作。
 
+## **docker attach id/name**
+
+使用 `docker attach` 会进入容器正在执行的终端，不会启动新的进程。
+
+> 语法
+
+```shell
+docker attach 容器
+
+[root@sail ~]# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED        STATUS        PORTS     NAMES
+96ed3fe3e7f1   centos    "/bin/bash"   17 hours ago   Up 17 hours             centos01
+
+[root@sail ~]# docker attach 96ed3fe3e7f1
+[root@96ed3fe3e7f1 /]# ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  0 Dec09 pts/0    00:00:00 /bin/bash
+root        33     1  0 05:49 pts/0    00:00:00 ps -ef
+```
+
+这种进入方式没有开启新的进程（`/bin/bash` 是 centos 容器的默认终端）。
+
 ## **docker exec -it id/name**
 
 使用 `docker exec` 可以进入容器并开启一个新的终端，可以在里面操作。
@@ -684,28 +710,6 @@ root        30    15  0 03:39 pts/1    00:00:00 ps -ef
 ```
 
 这种进入方式是单独开了一个新进程的方式。
-
-## **docker attach id/name**
-
-使用 `docker attach` 会进入容器正在执行的终端，不会启动新的进程。
-
-> 语法
-
-```shell
-docker attach 容器
-
-[root@sail ~]# docker ps
-CONTAINER ID   IMAGE     COMMAND       CREATED        STATUS        PORTS     NAMES
-96ed3fe3e7f1   centos    "/bin/bash"   17 hours ago   Up 17 hours             centos01
-
-[root@sail ~]# docker attach 96ed3fe3e7f1
-[root@96ed3fe3e7f1 /]# ps -ef
-UID        PID  PPID  C STIME TTY          TIME CMD
-root         1     0  0 Dec09 pts/0    00:00:00 /bin/bash
-root        33     1  0 05:49 pts/0    00:00:00 ps -ef
-```
-
-这种进入方式没有开启新的进程（`/bin/bash` 是 centos 容器的默认终端）。
 
 # 从容器内拷贝文件到主机
 

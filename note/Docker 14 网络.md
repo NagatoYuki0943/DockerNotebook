@@ -413,7 +413,7 @@ root@a52a784bcef9:/#
 
 在我们启动容器的时候默认会有一个网络设置。
 
-### **docker network create -d bridge --subnet ? --gateway ? name**
+### **docker network create -d bridge --subnet 172.18.0.0/16 --gateway 172.18.0.1 name**
 
 > 参数
 >
@@ -516,7 +516,7 @@ PS C:\Users\Frostbite> docker network inspect archlinux
 ]
 ```
 
-#### **docker run --net=name** 启动镜像
+#### **docker run --net=netname** 启动镜像
 
 ```shell
 PS C:\Users\Frostbite> docker run -it --net archlinux --name archlinux1 archlinux
@@ -961,6 +961,8 @@ PS C:\Users\Frostbite> docker network create --subnet 192.168.1.0/24 --gateway 1
 
 # 断开网络
 PS C:\Users\Frostbite> docker network disconnect alpinenet myalpine2
+# 或者连上这个网络
+PS C:\Users\Frostbite> docker network connect alpinenet myalpine2
 
 # 就可以开机了
 PS C:\Users\Frostbite> docker start myalpine2

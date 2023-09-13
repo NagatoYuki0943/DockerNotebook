@@ -298,7 +298,7 @@ REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
 
 # 运行镜像
 
-## **docker run -it -d --name="名字" -p 主机端口:容器端口 -v 主机目录:容器目录 --net=netname image**
+## **docker run --name="名字" --rm -d -it -p 主机端口:容器端口 -v 主机目录:容器目录 --net=netname image**
 
 > 语法
 

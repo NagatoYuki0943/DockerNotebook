@@ -14,7 +14,7 @@ https://www.bilibili.com/video/BV1kv411q7Qc?spm_id_from=333.999.0.0
 
 # 简介
 
-![img](Docker 13 Dockerfile.assets/kuangstudybd744e77-1e24-41e0-9737-d169690f30cf.png)
+![img](13-Dockerfile.assets/kuangstudybd744e77-1e24-41e0-9737-d169690f30cf.png)
 
 Dockerfile 是用来构建 Docker 镜像的文件，可以理解为**命令参数脚本**。
 
@@ -37,21 +37,21 @@ Dockerfile 是面向开发的，想要打包项目，就要编写 Dockerfile 文
 
 > 在 [Docker Hub](https://hub.docker.com/) 搜索 centos 镜像，选择官方镜像。
 
-![img](Docker 13 Dockerfile.assets/kuangstudy07af1e35-15eb-4529-8d12-ef5ea0c1ea8e.png)
+![img](13-Dockerfile.assets/kuangstudy07af1e35-15eb-4529-8d12-ef5ea0c1ea8e.png)
 
 > 点击 **The CentOS Project** 。
 
-![img](Docker 13 Dockerfile.assets/kuangstudyaa509032-be45-4ece-ad06-ab89df41112f.png)
+![img](13-Dockerfile.assets/kuangstudyaa509032-be45-4ece-ad06-ab89df41112f.png)
 
 > 选择版本分支。这里以 **CentOS-7.6.1810** 为例。
 
-![img](Docker 13 Dockerfile.assets/kuangstudyb7697c68-22ef-4905-9170-62378aef5f0b.png)
+![img](13-Dockerfile.assets/kuangstudyb7697c68-22ef-4905-9170-62378aef5f0b.png)
 
 > 查看 Dockerfile。
 
-![img](Docker 13 Dockerfile.assets/kuangstudy55cc0f0a-1230-46df-a5dc-771be68096e0.png)
+![img](13-Dockerfile.assets/kuangstudy55cc0f0a-1230-46df-a5dc-771be68096e0.png)
 
-![img](Docker 13 Dockerfile.assets/kuangstudy62bf47da-a420-4fd3-90db-035c70d5280c.png)
+![img](13-Dockerfile.assets/kuangstudy62bf47da-a420-4fd3-90db-035c70d5280c.png)
 
 > 可以看出官方的 Dockerfile 是很简洁的，这就是 Docker 极致精简的原因。
 
@@ -934,11 +934,11 @@ You need to restart docker to take effect: sudo systemctl restart docker
 
 > 去 Docker Hub 上以 **账号名/镜像名** 搜索我们刚发布的镜像，发现是可以搜索到的。
 
-![img](Docker 13 Dockerfile.assets/kuangstudy5d0bfcf4-7830-42d9-a019-6b3fdbf9d82c.png)
+![img](13-Dockerfile.assets/kuangstudy5d0bfcf4-7830-42d9-a019-6b3fdbf9d82c.png)
 
 > 查看详情也可以镜像的具体信息。
 
-![img](Docker 13 Dockerfile.assets/kuangstudyc57c1644-bd6a-4e74-8d90-764c3a279b6c.png)
+![img](13-Dockerfile.assets/kuangstudyc57c1644-bd6a-4e74-8d90-764c3a279b6c.png)
 
 DIGEST 的值正是刚才发布后返回值 `ecefaae6c5a2cab84693175ea3b18d0d0a7aa0160e33a0bf3eb4ab626b10f0f1` 的缩写。
 
@@ -1004,9 +1004,9 @@ asailing/centos   1.0       d58be7785771   29 hours ago   323MB
 
 > 登录阿里云，点击**我的阿里云**
 
-![img](Docker 13 Dockerfile.assets/kuangstudy42018025-d25d-4838-815f-cd683749715b.png)
+![img](13-Dockerfile.assets/kuangstudy42018025-d25d-4838-815f-cd683749715b.png)
 
-![img](Docker 13 Dockerfile.assets/kuangstudy76398d1b-d43b-4d2c-8960-ab9c66e02182.png)
+![img](13-Dockerfile.assets/kuangstudy76398d1b-d43b-4d2c-8960-ab9c66e02182.png)
 
 > 创建实例
 
@@ -1014,33 +1014,33 @@ asailing/centos   1.0       d58be7785771   29 hours ago   323MB
 
 我这里已经创建好了，如果没有创建点击创建即可。
 
-![img](Docker 13 Dockerfile.assets/kuangstudyf40bb3ef-d6e3-4fcf-b2cf-56a68f3a3936.png)
+![img](13-Dockerfile.assets/kuangstudyf40bb3ef-d6e3-4fcf-b2cf-56a68f3a3936.png)
 
 > 进入镜像仓库
 
 创建好个人实例后，点击进入。
 
-![img](Docker 13 Dockerfile.assets/kuangstudy599e3dcd-15a1-4996-bb6d-4c25e60a9344.png)
+![img](13-Dockerfile.assets/kuangstudy599e3dcd-15a1-4996-bb6d-4c25e60a9344.png)
 
 > 创建命名空间
 
-![img](Docker 13 Dockerfile.assets/kuangstudycb118d7b-e673-46f3-8fc8-963b8a26a5d8.png)
+![img](13-Dockerfile.assets/kuangstudycb118d7b-e673-46f3-8fc8-963b8a26a5d8.png)
 
 一个账号只能创建 3 个命名空间，需要谨慎创建。
 
 创建好后就是这样。
 
-![img](Docker 13 Dockerfile.assets/kuangstudy7f2b0bf2-190f-4272-b2a3-857d1c65abc2.png)
+![img](13-Dockerfile.assets/kuangstudy7f2b0bf2-190f-4272-b2a3-857d1c65abc2.png)
 
 > 创建镜像仓库
 
-![img](Docker 13 Dockerfile.assets/kuangstudy33cd03cb-bfd7-4ca8-8d1e-59b87b1370dd.png)
+![img](13-Dockerfile.assets/kuangstudy33cd03cb-bfd7-4ca8-8d1e-59b87b1370dd.png)
 
 > 点击下一步，创建本地仓库
 
-![img](Docker 13 Dockerfile.assets/kuangstudya3427a43-12f3-4d21-a579-6336f884034b.png)
+![img](13-Dockerfile.assets/kuangstudya3427a43-12f3-4d21-a579-6336f884034b.png)
 
-![img](Docker 13 Dockerfile.assets/kuangstudy8a8bbfee-29b9-46a0-9644-f8788e2804d0.png)
+![img](13-Dockerfile.assets/kuangstudy8a8bbfee-29b9-46a0-9644-f8788e2804d0.png)
 
 至此，我们就创建好了阿里云的镜像仓库，具体的操作步骤上图也写得非常清楚。
 
@@ -1087,7 +1087,7 @@ de70c523870b: Pushed
 
 > 查看提交的镜像
 
-![img](Docker 13 Dockerfile.assets/kuangstudyfb28acbd-766d-4818-b6df-2fb889ef1072.png)
+![img](13-Dockerfile.assets/kuangstudyfb28acbd-766d-4818-b6df-2fb889ef1072.png)
 
 提交的镜像可以在这里查看。
 

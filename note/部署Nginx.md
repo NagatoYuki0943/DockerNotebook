@@ -83,11 +83,11 @@ Commercial support is available at
 
 如果是使用**阿里云服务器**，需要先开启端口。
 
-![img](Docker 06 部署Nginx.assets/kuangstudy730f8c47-9e5e-4500-89c3-53efeb84508f.png)
+![img](部署Nginx.assets/kuangstudy730f8c47-9e5e-4500-89c3-53efeb84508f.png)
 
 使用阿里云的公网 IP 即可进行访问。
 
-![img](Docker 06 部署Nginx.assets/kuangstudyd752732b-2341-406e-bdb9-cf761687f943.png)
+![img](部署Nginx.assets/kuangstudyd752732b-2341-406e-bdb9-cf761687f943.png)
 
 出现此页面，即代表 Nginx 部署成功。
 
@@ -118,6 +118,6 @@ conf.d    fastcgi_params    mime.types  modules  nginx.conf  scgi_params  uwsgi_
 
 # 部署原理
 
-![img](Docker 06 部署Nginx.assets/kuangstudyac5efdfa-8d87-4b82-833a-34ec38378727.png)
+![img](部署Nginx.assets/kuangstudyac5efdfa-8d87-4b82-833a-34ec38378727.png)
 
 ​      

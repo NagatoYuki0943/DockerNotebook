@@ -104,6 +104,6 @@ e6d7fe80cf29   elasticsearch02   0.78%     379.8MiB / 1.694GiB   21.89%    0B / 
 }
 ```
 
-![img](Docker 08 部署Elasticsearch.assets/kuangstudy89a8801b-2e63-4d25-bc87-abaf822663e9.png)
+![img](部署Elasticsearch.assets/kuangstudy89a8801b-2e63-4d25-bc87-abaf822663e9.png)
 
 > 网页此内容代表 Elasticsearch 部署完成。

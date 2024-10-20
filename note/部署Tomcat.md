@@ -76,7 +76,7 @@ ROOT  docs  examples  host-manager  manager
 
 # 外网访问测试
 
-![img](Docker 07 部署Tomcat.assets/kuangstudyf950ce57-3913-442b-994d-c3fa4a2749d1.png)
+![img](部署Tomcat.assets/kuangstudyf950ce57-3913-442b-994d-c3fa4a2749d1.png)
 
 > 命令测试
 
